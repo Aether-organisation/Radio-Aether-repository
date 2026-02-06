@@ -1,4 +1,4 @@
-# Aether 
+# Radio Aether 
 
 ![Project Status](https://img.shields.io/badge/Status-In_Development-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Academic-lightgrey?style=for-the-badge)
