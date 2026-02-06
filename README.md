@@ -1,4 +1,4 @@
-# 🌌 Aether - v0.0.1 (Architecture & Concept)
+# 🌌 Aether - v0 (Architecture & Concept)
 
 ![Version](https://img.shields.io/badge/Version-v0.0.1_Alpha-purple?style=flat-square)
 ![Stage](https://img.shields.io/badge/Stage-Architecture_&_Planning-blue?style=flat-square)
@@ -105,16 +105,18 @@ erDiagram
 ```
 ---
 
-## 🛠️ Stack Tecnológico Definido
+## 🛠️ Stack Tecnológico
 
 Para la siguiente fase (v1 - Implementación), se ha aprobado el siguiente stack:
 
 | Capa | Tecnología | Justificación |
 | :--- | :--- | :--- |
-| **Backend** | **Java (Spring Boot)** | Robustez, gestión de hilos (PGV) y seguridad. |
+| **Backend** | **Java (Spring Boot)** | Robustez, gestión de hilos y seguridad. |
 | **Frontend** | **TypeScript (React)** | Componentización, ecosistema moderno y PWA. |
 | **Base de Datos** | **MySQL / PostgreSQL** | Integridad relacional y soporte geoespacial. |
-| **Despliegue** | **Docker** | Portabilidad y despliegue (DPL). |
+| **Despliegue** | **Docker** | Portabilidad y despliegue. |
+| **Web** | **Angular** | Web para presentar el producto securizada con SSL. |
+| **Gestión** | **Odoo** | Gestión de soporte y marketing. |
 | **IA / NLP** | **Google Gemini API** | Procesamiento de lenguaje natural para el "Mood Tuner". |
 
 ---
@@ -128,7 +130,7 @@ Para la siguiente fase (v1 - Implementación), se ha aprobado el siguiente stack
 
 ---
 
-## 👥 Equipo de Ingeniería
+## 👥 Equipo
 
 * **@PRORIX** (Romén Gilberto García Gómez) - *Backend Lead & DB Architect*
 * **@mahoramas** (Marcos Hernández Oramas) - *Frontend Lead & UX Specialist*
