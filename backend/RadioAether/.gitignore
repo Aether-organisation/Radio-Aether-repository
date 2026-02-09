@@ -1,33 +1,27 @@
-HELP.md
+# Archivos compilados de Java (Basura)
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+*.class
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+# Archivos de configuración del IDE (No se suben)
+.idea/
 *.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
 .vscode/
+.settings/
+.classpath
+.project
+
+# Archivos de sistema (Mac/Windows)
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Base de datos SQLite (IMPORTANTE: No subir la DB binaria)
+# Cada uno debe tener su propia DB local para no tener conflictos al fusionar.
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos temporales
+tmp/
