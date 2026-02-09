@@ -22,15 +22,12 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Si no existe el rol USER, lo crea
         if (roleRepository.findByName(RoleName.ROLE_USER).isEmpty()) {
             roleRepository.save(Role.builder().name(RoleName.ROLE_USER).build());
         }
-        // Si no existe el rol ADMIN, lo crea
         if (roleRepository.findByName(RoleName.ROLE_ADMIN).isEmpty()) {
             roleRepository.save(Role.builder().name(RoleName.ROLE_ADMIN).build());
         }
-        // Si no existe el rol B2B, lo crea
         if (roleRepository.findByName(RoleName.ROLE_B2B).isEmpty()) {
             roleRepository.save(Role.builder().name(RoleName.ROLE_B2B).build());
         }

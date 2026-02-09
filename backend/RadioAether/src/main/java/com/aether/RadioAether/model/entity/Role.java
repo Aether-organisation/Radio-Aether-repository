@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
  * Role entity
  * @author prorix
  * @author mahoramas
- * @version 1.0.0
+ * @version 1.0.1
  */
 @Entity
 @Table(name = "ROLES")
