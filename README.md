@@ -14,7 +14,7 @@ El objetivo de esta fase es definir la **Lógica de Negocio** y la **Persistenci
 
 ## 💾 Arquitectura de Datos (Database Schema)
 
-El núcleo de Aether reside en su base de datos relacional (SQL), diseñada para soportar consultas complejas de contexto y normalización estricta (cumpliendo requisitos de **AED**).
+El núcleo de Aether reside en su base de datos relacional (SQL), diseñada para soportar consultas complejas de contexto y normalización estricta.
 
 El sistema consta de **5 Tablas Maestras**:
 
@@ -40,7 +40,6 @@ Actúa como un espejo local de la API externa (Radio Browser). Persistimos las e
 La tabla más crítica. No solo guarda "qué escuchó", sino el **contexto exacto** del momento.
 * **Datos Clave:**
     * `velocidad_kmh`: Dato de sensor GPS/Acelerómetro.
-    * `clima_snapshot`: Dato de API meteorológica (ej: "Lluvia").
     * `mood_input`: El texto o etiqueta que el usuario seleccionó.
     * `duracion_escucha`: Métrica de satisfacción (Engagement).
 
@@ -69,7 +68,6 @@ erDiagram
         long id_config PK
         long id_usuario FK
         boolean modo_conductor_auto
-        boolean notificaciones_trafico
         enum tema_visual
         boolean ahorro_datos
     }
@@ -92,7 +90,6 @@ erDiagram
         datetime fecha_hora
         int duracion_seg
         float velocidad_kmh
-        string clima_detectado
         string mood_input
     }
 
@@ -126,7 +123,9 @@ Para la siguiente fase (v1 - Implementación), se ha aprobado el siguiente stack
 * **v0 (Actual):** Definición de arquitectura, BBDD y Mockups UI.
 * **v1 (Alpha):** "Hola Mundo" funcional. Login de usuarios y reproducción de una radio hardcodeada.
 * **v2 (Beta):** Integración de API de Radios y Geolocalización básica.
-* **v3 (Release Candidate):** Implementación del "Mood Tuner" (IA) y Modo Conductor.
+* **v3 (Beta v2):** Integración de las funciones exceptuando IA.
+* **v4 (Web):** Creación de los sitios web relaciones con la APP
+* **v5 (Release Candidate):** Implementación del "Mood Tuner" (IA) y Modo Conductor.
 
 ---
 
