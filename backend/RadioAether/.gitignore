@@ -1,27 +1,54 @@
-# Archivos compilados de Java (Basura)
-target/
+# Java / Maven build output
+/target/
 *.class
 
-# Archivos de configuración del IDE (No se suben)
+# IDE config (do not commit)
+.mvn/
 .idea/
 *.iml
 .vscode/
 .settings/
 .classpath
 .project
+*.launch
+*.code-workspace
 
-# Archivos de sistema (Mac/Windows)
+# IDE build output
+/bin/
+/out/
+
+# NetBeans
+/nbproject/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# OS files (Mac/Windows)
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # Logs
 *.log
+/logs/
 
-# Base de datos SQLite (IMPORTANTE: No subir la DB binaria)
-# Cada uno debe tener su propia DB local para no tener conflictos al fusionar.
+# SQLite databases (each dev keeps their own local DB)
 *.db
 *.sqlite
 *.sqlite3
 
-# Archivos temporales
-tmp/
+# Temp files
+/tmp/
+/.tmp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# Env / secrets
+.env
+.env.*
+*.key
+*.pem

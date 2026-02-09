@@ -8,8 +8,9 @@ import java.util.Set;
 
 /**
  * User entity
+ * 
  * @author prorix
- * @author mahoramas
+ * @author mahoramas 
  * @version 1.1.0
  */
 @Data
@@ -33,13 +34,6 @@ public class User {
     private boolean activo;
 
     @ManyToMany(fetch = FetchType.EAGER)
-        @JoinTable(
-        name = "USUARIOS_ROLES",
-        joinColumns = @JoinColumn(name = "id_usuario"),
-        inverseJoinColumns = @JoinColumn(name = "id_rol")
-    )
+    @JoinTable(name = "USUARIOS_ROLES", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_rol"))
     private Set<Role> roles = new HashSet<>();
 }
-
-
-
