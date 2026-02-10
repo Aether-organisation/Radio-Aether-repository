@@ -16,8 +16,9 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Application configuration
+ * @author prorix
  * @author mahoramas
- * @version 1.0.0
+ * @version 1.0.1
  */
 @Configuration
 @RequiredArgsConstructor
