@@ -1,9 +1,7 @@
 package com.aether.RadioAether.security;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,9 +11,13 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
+ * JWT Authentication Filter
  * @author prorix
  * @author mahoramas
  * @version 1.0.0
@@ -27,10 +29,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
 
     /**
-     * Constructor para inyección de dependencias.
+     * Constructor for dependency injection.
      *
-     * @param jwtService         Servicio JWT
-     * @param userDetailsService Servicio de detalles de usuario
+     * @param jwtService         JWT Service
+     * @param userDetailsService User Details Service
      */
     public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
@@ -38,13 +40,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Filtra cada petición para validar el token JWT.
+     * Filters each request to validate the JWT token.
      *
-     * @param request     Petición HTTP
-     * @param response    Respuesta HTTP
-     * @param filterChain Cadena de filtros
-     * @throws ServletException Si hay error de servlet
-     * @throws IOException      Si hay error de entrada/salida
+     * @param request     HTTP Request
+     * @param response    HTTP Response
+     * @param filterChain Filter chain
+     * @throws ServletException If there is a servlet error
+     * @throws IOException      If there is an input/output error
      */
     @Override
     protected void doFilterInternal(
@@ -76,7 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Token invalido o expirado
+            // Invalid or expired token
         }
         filterChain.doFilter(request, response);
     }

@@ -1,18 +1,25 @@
 package com.aether.RadioAether.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.Date;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 
 /**
+ * Json Web Token service
  * @author prorix
  * @author mahoramas
  * @version 1.0.0
@@ -24,10 +31,10 @@ public class JwtService {
     private final long expirationMinutes;
 
     /**
-     * Constructor para configuración JWT.
+     * Constructor for JWT configuration.
      *
-     * @param secret            La clave secreta
-     * @param expirationMinutes Minutos de expiración
+     * @param secret            The secret key
+     * @param expirationMinutes Expiration minutes
      */
     public JwtService(
             @Value("${app.jwt.secret}") String secret,
@@ -37,38 +44,45 @@ public class JwtService {
     }
 
     /**
-     * Genera un token para el usuario.
+     * Generates a token for the user.
      *
-     * @param username El nombre de usuario
-     * @return El token JWT
+     * @param userDetails The user details
+     * @return The JWT token
      */
-    public String generateToken(String username) {
-        Instant now = Instant.now();
-        Instant exp = now.plusSeconds(expirationMinutes * 60);
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
+    }
 
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
-                .subject(username)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(exp))
-                .signWith(key)
+                .setClaims(extraClaims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
+    private Key getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode("Kraj8AxPPe5XdByv9wN4o4cwhW8ExUoxH3kGIG9oY3MobGgN7zbPmmG2aomaZ7RP6EH17Le6RdX6+k0DPxqbfQ==");
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
     /**
-     * Extrae el nombre de usuario del token.
+     * Extracts the username from the token.
      *
-     * @param token El token JWT
-     * @return El nombre de usuario
+     * @param token The JWT token
+     * @return The username
      */
     public String extractUsername(String token) {
         return parseClaims(token).getSubject();
     }
 
     /**
-     * Valida si el token no ha expirado.
+     * Validates if the token has not expired.
      *
-     * @param token El token JWT
-     * @return true si es válido
+     * @param token The JWT token
+     * @return true if valid
      */
     public boolean isValid(String token) {
         try {
@@ -80,11 +94,11 @@ public class JwtService {
     }
 
     /**
-     * Valida el token completo contra los detalles de usuario.
+     * Validates the complete token against user details.
      *
-     * @param token       El token JWT
-     * @param userDetails Los detalles del usuario
-     * @return true si es válido
+     * @param token       The JWT token
+     * @param userDetails The user details
+     * @return true if valid
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);

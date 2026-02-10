@@ -1,45 +1,42 @@
 package com.aether.RadioAether.config;
 
-import com.aether.RadioAether.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+import com.aether.RadioAether.security.CustomUserDetailsService;
+
+import lombok.RequiredArgsConstructor;
 
 /**
+ * Application configuration
  * @author mahoramas
  * @version 1.0.0
  */
 @Configuration
+@RequiredArgsConstructor
 public class ApplicationConfig {
 
+    private final CustomUserDetailsService customUserDetailsService;
+
     /**
-     * Define el servicio de detalles de usuario.
+     * Defines the user details service.
      *
-     * @return UserDetailsService con usuario en memoria
+     * @return UserDetailsService with users from database
      */
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .username("user")
-                .password(passwordEncoder().encode("password"))
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user);
+        return customUserDetailsService;
     }
 
     /**
-     * Define el proveedor de autenticación.
+     * Defines the authentication provider.
      *
      * @return AuthenticationProvider
      */
@@ -51,11 +48,11 @@ public class ApplicationConfig {
     }
     
     /**
-     * Define el gestor de autenticación.
+     * Defines the authentication manager.
      *
-     * @param config Configuración de autenticación
+     * @param config Authentication configuration
      * @return AuthenticationManager
-     * @throws Exception Si hay error en la configuración
+     * @throws Exception If there is an error in the configuration
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -63,9 +60,9 @@ public class ApplicationConfig {
     }
 
     /**
-     * Define el codificador de contraseñas.
+     * Defines the password encoder.
      *
-     * @return PasswordEncoder usando BCrypt
+     * @return PasswordEncoder using BCrypt
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
