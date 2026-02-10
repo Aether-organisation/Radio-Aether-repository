@@ -1,7 +1,5 @@
 package com.aether.RadioAether.model.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
@@ -11,6 +9,10 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+
+import jakarta.persistence.*;
+import lombok.*;
 
 /**
  * User entity
@@ -40,6 +42,7 @@ public class User implements UserDetails{
 
     private String password;
     private LocalDateTime fechaRegistro;
+    
     private boolean activo;
 
     @ManyToMany(fetch = FetchType.EAGER)

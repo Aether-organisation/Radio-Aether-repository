@@ -20,7 +20,7 @@ public class RadioService {
                 .id(UUID.randomUUID().toString())
                 .name("Los 40 Principales (España)")
                 .streamUrl("https://21633.live.streamtheworld.com/LOS40_SC") // URL Real que funciona
-                .logoUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Los40_Espa%C3%B1a_logo_2016.svg/1200px-Los40_Espa%C3%B1a_logo_2016.svg.png")
+                .logoUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Los_40.svg/3840px-Los_40.svg.png")
                 .genre("Pop / Hits")
                 .build();
     }
