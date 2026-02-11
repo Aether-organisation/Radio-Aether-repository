@@ -41,12 +41,10 @@ export const PlayerScreen = ({ navigation }: any) => {
     const setupPlayer = async () => {
       if (station && station.streamUrl) {
         try {
-          // Unload previous sound if exists
           if (soundRef.current) {
             await soundRef.current.unloadAsync();
           }
           
-          // Create new sound instance
           const { sound } = await Audio.Sound.createAsync(
             { uri: station.streamUrl },
             { shouldPlay: true }
@@ -54,14 +52,12 @@ export const PlayerScreen = ({ navigation }: any) => {
           
           soundRef.current = sound;
 
-          // Set up status listener
           sound.setOnPlaybackStatusUpdate((status: any) => {
             if (status.isLoaded) {
               setIsPlaying(status.isPlaying);
             }
           });
 
-          // Start playing
           await sound.playAsync();
         } catch (error) {
           console.error('Error setting up audio player:', error);
@@ -71,7 +67,6 @@ export const PlayerScreen = ({ navigation }: any) => {
 
     setupPlayer();
 
-    // Cleanup function
     return () => {
       if (soundRef.current) {
         soundRef.current.unloadAsync();

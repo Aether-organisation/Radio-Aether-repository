@@ -38,6 +38,14 @@ public class AuthService {
 
 
     public AuthResponse register(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Error: El email ya está registrado.");
+        }
+        
+        if (userRepository.existsByNombre(request.getNombre())) {
+            throw new RuntimeException("Error: El nombre de usuario ya está en uso.");
+        }
+        
         Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new RuntimeException("Error: Role not found."));
 

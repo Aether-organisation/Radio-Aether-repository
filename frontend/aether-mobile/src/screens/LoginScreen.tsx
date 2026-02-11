@@ -47,6 +47,10 @@ export const LoginScreen = ({ navigation }: any) => {
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>ENTRAR</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Register' as never)}>
+                <Text style={styles.linkText}>¿No tienes cuenta? Regístrate</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -57,4 +61,6 @@ const styles = StyleSheet.create({
     input: { backgroundColor: '#1E1E1E', color: '#fff', padding: 15, borderRadius: 8, marginBottom: 15 },
     button: { backgroundColor: '#646cff', padding: 15, borderRadius: 8, alignItems: 'center' },
     buttonText: { color: '#fff', fontWeight: 'bold' },
+    linkButton: { marginTop: 20, alignItems: 'center' },
+    linkText: { color: '#646cff', fontSize: 14 },
 });
