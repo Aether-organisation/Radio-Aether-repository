@@ -27,14 +27,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store",
-      [
-        "expo-audio",
-        {
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
-        }
-      ]
+      "expo-secure-store"
     ]
   }
 }
-

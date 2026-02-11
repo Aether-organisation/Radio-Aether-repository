@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
+import { Audio } from 'expo-av';
 import api from '../api/axios';
 import { RadioStation } from '../types';
 import * as SecureStore from 'expo-secure-store';
@@ -9,14 +9,14 @@ export const PlayerScreen = ({ navigation }: any) => {
   const [station, setStation] = useState<RadioStation | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
-  const playerRef = React.useRef<ReturnType<typeof createAudioPlayer> | null>(null);
+  const soundRef = React.useRef<Audio.Sound | null>(null);
 
   useEffect(() => {
     const setupAudio = async () => {
-      await setAudioModeAsync({
+      await Audio.setAudioModeAsync({
         playsInSilentMode: true,
         shouldPlayInBackground: true,
-        interruptionMode: 'duckOthers',
+        interruptionMode: Audio.INTERRUPTION_MODE_IOS_DUCKOTHERS,
       });
     };
     setupAudio();
@@ -38,49 +38,69 @@ export const PlayerScreen = ({ navigation }: any) => {
   };
 
   useEffect(() => {
-    if (station && station.streamUrl) {
-      if (playerRef.current) {
-        playerRef.current.remove();
-      }
-      
-      const player = createAudioPlayer({
-        uri: station.streamUrl,
-      });
-      
-      playerRef.current = player;
+    const setupPlayer = async () => {
+      if (station && station.streamUrl) {
+        try {
+          // Unload previous sound if exists
+          if (soundRef.current) {
+            await soundRef.current.unloadAsync();
+          }
+          
+          // Create new sound instance
+          const { sound } = await Audio.Sound.createAsync(
+            { uri: station.streamUrl },
+            { shouldPlay: true }
+          );
+          
+          soundRef.current = sound;
 
-      player.play();
+          // Set up status listener
+          sound.setOnPlaybackStatusUpdate((status: any) => {
+            if (status.isLoaded) {
+              setIsPlaying(status.isPlaying);
+            }
+          });
 
-      const subscription = player.addListener('playbackStatusUpdate', (status: any) => {
-        if (status.isLoaded) {
-          setIsPlaying(status.playing);
+          // Start playing
+          await sound.playAsync();
+        } catch (error) {
+          console.error('Error setting up audio player:', error);
         }
-      });
+      }
+    };
 
-      return () => {
-        subscription.remove();
-        player.remove();
-      };
-    }
+    setupPlayer();
+
+    // Cleanup function
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync();
+        soundRef.current = null;
+      }
+    };
   }, [station?.streamUrl]);
 
   const togglePlayback = async () => {
-    if (!playerRef.current) return;
+    if (!soundRef.current) return;
     
-    const status = playerRef.current.currentStatus;
-    if (status.playing) {
-      playerRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      playerRef.current.play();
-      setIsPlaying(true);
+    try {
+      const status = await soundRef.current.getStatusAsync();
+      if (status.isPlaying) {
+        await soundRef.current.pauseAsync();
+        setIsPlaying(false);
+      } else {
+        await soundRef.current.playAsync();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Error toggling playback:', error);
     }
   };
 
   const handleLogout = async () => {
-    if (playerRef.current) {
-      playerRef.current.remove();
-      playerRef.current = null;
+    if (soundRef.current) {
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
     }
     await SecureStore.deleteItemAsync('jwt_token');
     navigation.replace('Login');
