@@ -43,13 +43,13 @@ Esta normalización garantiza la integridad referencial, la escalabilidad del mo
 | Tabla | Tipo | Descripción Funcional |
 | :--- | :--- | :--- |
 | **`EMISORAS`** | **Maestra** | Inventario de estaciones de radio. Identificadas por `UUID`. Almacena metadatos de streaming, logos y geolocalización (lat/lon). |
-| **`HISTORIAL`** | **Big Data** | Registro inmutable de actividad. No solo guarda la emisora, sino el **contexto** (Velocidad, Clima, Mood) para alimentar futuros algoritmos de recomendación. |
+| **`HISTORIAL`** | **Big Data** | Registro inmutable de actividad. No solo guarda la emisora, sino el **contexto** (334    Clima, Mood) para alimentar futuros algoritmos de recomendación. |
 | **`FAVORITOS`** | **Interacción** | Permite a los usuarios crear su biblioteca personal. Separada del historial para diferenciar "lo que escucho" de "lo que me gusta". |
 
 ### 4. Dominio de Metadatos (Taxonomía)
 | Tabla | Tipo | Descripción Funcional |
 | :--- | :--- | :--- |
-| **`ETIQUETAS_MOOD`** | **Diccionario** | Base de conocimiento para el "Mood Tuner". Asocia palabras clave (ej: "Triste", "Gym") con géneros musicales y pesos emocionales. |
+| **`ETIQUETAS_MOOD`** | **Diccionario** | Base de conocimiento para el "Mood Tuner". Asocia palabras clave (ej: "Triste", "Gym") con géneros musicales. |
 
 ---
 
@@ -150,7 +150,6 @@ erDiagram
         uuid id_emisora FK
         datetime fecha_hora
         int duracion_seg
-        float velocidad_kmh
         string mood_input
     }
 
@@ -168,7 +167,6 @@ erDiagram
         int id_tag PK
         string palabra_clave
         string genero_asociado
-        int peso_emocional
     }
 ```
 ---
