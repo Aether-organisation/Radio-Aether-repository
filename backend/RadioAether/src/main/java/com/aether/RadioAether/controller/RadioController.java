@@ -1,11 +1,13 @@
 package com.aether.RadioAether.controller;
 
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.aether.RadioAether.model.dto.request.LocationRequest;
 import com.aether.RadioAether.model.dto.response.StationDTO;
 import com.aether.RadioAether.service.RadioService;
 
@@ -27,6 +29,13 @@ public class RadioController {
     @GetMapping("/mock")
     public ResponseEntity<StationDTO> getMockRadio() {
         return ResponseEntity.ok(radioService.getMockRadio());
+    }
+
+    @PostMapping("/nearest")
+    public ResponseEntity<StationDTO> getNearestStation(@RequestBody LocationRequest request) {
+        StationDTO recommendedStation = radioService.findNearestStation(request);
+        
+        return ResponseEntity.ok(recommendedStation);
     }
 }
 
