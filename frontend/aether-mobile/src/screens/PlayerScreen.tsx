@@ -49,12 +49,16 @@ export const PlayerScreen = ({ navigation }: any) => {
       }
 
 
-      let location = await Location.getLastKnownPositionAsync({});
-
-      if (!location) {
-        console.log("Buscando satélites activamente...");
+      console.log("Buscando satélites activamente...");
+      let location;
+      try {
         location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced
+          accuracy: Location.Accuracy.Highest,
+        });
+      } catch (locationError) {
+        console.warn("Fallo con Highest, intentando Lowest...", locationError);
+        location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Lowest,
         });
       }
 
