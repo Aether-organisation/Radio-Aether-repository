@@ -13,7 +13,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
             await SecureStore.setItemAsync('jwt_token', response.data.token);
 
-            navigation.replace('Player');
+            navigation.replace('MainTabs');
         } catch (error) {
             console.error(error);
             Alert.alert('Error', 'Credenciales incorrectas o fallo de conexión');
