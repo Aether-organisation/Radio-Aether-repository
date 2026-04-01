@@ -3,9 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import { HomeScreenProps } from '../types/navigation';
+import { useAudio } from '../contexts/AudioContext';
+import { MiniPlayer } from '../components/MiniPlayer';
 
 export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const navigation = useNavigation<any>();
+  const { unload } = useAudio();
 
   const handleLogout = async () => {
     Alert.alert(
@@ -17,6 +20,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
           text: 'Sí, Cerrar',
           style: 'destructive',
           onPress: async () => {
+            await unload();
             await SecureStore.deleteItemAsync('jwt_token');
             navigation.replace('Login');
           },
@@ -27,11 +31,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🏠 Home</Text>
-      <Text style={styles.subtitle}>Welcome to Aether Radio</Text>
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Cerrar Sesión</Text>
-      </TouchableOpacity>
+      <View style={styles.content}>
+        <Text style={styles.title}>🏠 Home</Text>
+        <Text style={styles.subtitle}>Welcome to Aether Radio</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Cerrar Sesión</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -40,6 +46,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -66,5 +75,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
 
 
