@@ -8,6 +8,7 @@ import { PlayerScreen } from './src/screens/PlayerScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { SearchScreen } from './src/screens/SearchScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
 import { StatusBar } from 'expo-status-bar';
 import { Text, View } from 'react-native';
 import { MiniPlayer } from './src/components/MiniPlayer';
@@ -44,6 +45,11 @@ function MainTabs() {
           name="LibraryTab" 
           component={LibraryScreen} 
           options={{ title: 'Library' }} 
+        />
+        <Tab.Screen 
+          name="ProfileTab" 
+          component={ProfileScreen} 
+          options={{ title: 'Profile' }} 
         />
       </Tab.Navigator>
       <MiniPlayer />

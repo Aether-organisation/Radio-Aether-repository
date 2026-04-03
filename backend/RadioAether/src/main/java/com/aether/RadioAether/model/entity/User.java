@@ -44,6 +44,10 @@ public class User implements UserDetails{
     private LocalDateTime fechaRegistro;
     
     private boolean activo;
+    
+    @Lob
+    @Column(name="foto_perfil")
+    private String fotoPerfil;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "USUARIOS_ROLES", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_rol"))
