@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import jakarta.persistence.*;
 import lombok.*;
 
+import com.aether.RadioAether.model.entity.UserPreferences;
+
 /**
  * User entity
  * 
@@ -44,6 +46,13 @@ public class User implements UserDetails{
     private LocalDateTime fechaRegistro;
     
     private boolean activo;
+
+    @Column(name = "encuesta_completada", nullable = false)
+    private boolean surveyCompleted = false;
+    
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "id_preferencias")
+    private UserPreferences preferences;
     
     @Lob
     @Column(name="foto_perfil")
@@ -63,5 +72,25 @@ public class User implements UserDetails{
     @Override
     public String getUsername() {
         return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.activo;
     }
 }
