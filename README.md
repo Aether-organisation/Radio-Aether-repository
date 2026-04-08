@@ -35,7 +35,7 @@ erDiagram
 
 ---
 
-## ✅ Funcionalidades Implementadas (v1 - Genesis)
+## ✅ Funcionalidades Implementadas (v1 y v2)
 
 Lo que ya funciona en el código actual:
 
@@ -56,16 +56,26 @@ Lo que ya funciona en el código actual:
 * Uso de **SQLite** como motor de base de datos embebido.
 * *Justificación:* Garantiza la portabilidad total del proyecto sin necesidad de contenedores Docker externos en esta fase, alineándose con la filosofía *Edge Computing*.
 
+### 📻 4. Base de Datos de Emisoras Reales
+* **Persistencia Integrada:** Se sustituyen los datos *Mock* iniciales por estaciones de radio reales, almacenadas en la base de datos a través de nuevas entidades y repositorios.
+
+### 📍 5. Geolocalización Sensible al Contexto
+* **Algoritmo de Haversine:** Integración de lógica geoespacial para calcular y obtener la estación de radio más cercana en el backend.
+* **Expo Location:** Implementación de geolocalización en el dispositivo móvil para recomendar y sintonizar automáticamente radios locales en base a la ubicación del usuario.
+
+### 🎨 6. Interfaz y Autenticación Conectada
+* **Vistas de Autenticación:** Pantallas de Login y Registro completamente conectadas a la API REST.
+* **Reproductor de Audio Avanzado:** Implementación base y mejora visual del reproductor en la aplicación nativa.
+
 ---
 
 ## 🚀 Roadmap (Siguientes Pasos)
 
-El desarrollo continúa hacia la **v2**. Estas son las funcionalidades planificadas:
+El desarrollo continúa hacia la **v3** y posteriores. Estas son las funcionalidades planificadas:
 
-* [ ] **Base de Datos Real de Emisoras:** Migrar del Mock actual a persistencia en BBDD.
+* [ ] **Cuestionario Inicial (Onboarding):** Flujo obligatorio donde cada nuevo usuario define sus preferencias de escucha antes de utilizar la app principal (Rama v3).
 * [ ] **Historial de Escucha:** Registrar qué escucha cada usuario.
-* [ ] **API's:** Integración de API's necesarias para realizar las funciones.
-* [ ] **Geolocalización:** Primeros pasos de geolocalización para recomnedar readios.
+* [ ] **Recomendaciones Avanzadas:** Mejorar las recomendaciones combinando tu ubicación con las preferencias registradas en el onboarding.
 
 ---
 
