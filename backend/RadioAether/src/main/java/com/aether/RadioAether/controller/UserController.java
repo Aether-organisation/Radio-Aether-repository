@@ -45,4 +45,11 @@ public class UserController {
         userService.updateProfilePicture(email, request);
         return ResponseEntity.ok("Profile picture updated successfully");
     }
+
+    @PutMapping("/survey-completed")
+    public ResponseEntity<String> completeSurvey(Authentication authentication) {
+        String email = authentication.getName();
+        userService.completeSurvey(email);
+        return ResponseEntity.ok("Survey completed successfully");
+    }
 }

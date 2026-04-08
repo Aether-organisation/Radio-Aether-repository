@@ -61,7 +61,7 @@ public class AuthService {
         userRepository.save(user);
         String jwtToken = jwtService.generateToken(user);
         
-        return AuthResponse.builder().token(jwtToken).build();
+        return AuthResponse.builder().token(jwtToken).surveyCompleted(user.isSurveyCompleted()).build();
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -74,6 +74,6 @@ public class AuthService {
 
         String jwtToken = jwtService.generateToken(user);
         
-        return AuthResponse.builder().token(jwtToken).build();
+        return AuthResponse.builder().token(jwtToken).surveyCompleted(user.isSurveyCompleted()).build();
     }
 }

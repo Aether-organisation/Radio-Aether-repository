@@ -73,7 +73,11 @@ export const RegisterScreen = ({ navigation }: any) => {
 
             await SecureStore.setItemAsync('jwt_token', response.data.token);
 
-            navigation.replace('Player');
+            if (!response.data.surveyCompleted) {
+                navigation.replace('Survey');
+            } else {
+                navigation.replace('MainTabs');
+            }
         } catch (error: any) {
             console.log('Error completo:', JSON.stringify(error.response?.data));
             

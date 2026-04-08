@@ -9,6 +9,7 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { SearchScreen } from './src/screens/SearchScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { SurveyScreen } from './src/screens/SurveyScreen';
 import { StatusBar } from 'expo-status-bar';
 import { Text, View } from 'react-native';
 import { MiniPlayer } from './src/components/MiniPlayer';
@@ -65,6 +66,7 @@ export default function App() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="Survey" component={SurveyScreen} />
           <Stack.Screen name="Player" component={PlayerScreen} />
           <Stack.Screen name="MainTabs" component={MainTabs} />
         </Stack.Navigator>

@@ -49,4 +49,12 @@ public class UserService {
         user.setFotoPerfil(request.getFotoPerfil());
         userRepository.save(user);
     }
+
+    public void completeSurvey(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        user.setSurveyCompleted(true);
+        userRepository.save(user);
+    }
 }

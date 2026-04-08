@@ -5,6 +5,7 @@ import { ParamListBase } from '@react-navigation/native';
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  Survey: undefined;
   Player: undefined;
   MainTabs: undefined;
 };

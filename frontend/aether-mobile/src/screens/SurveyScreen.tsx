@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import api from '../api/axios';
 
 const genres = [
   'Rock',
@@ -32,17 +33,27 @@ export const SurveyScreen = () => {
     }
   };
 
-  const handleFinish = () => {
+  const finishSurvey = async () => {
+    try {
+      await api.put('/api/user/survey-completed');
+    } catch (e) {
+      console.error('Error completing survey:', e);
+    }
+  };
+
+  const handleFinish = async () => {
     if (selectedGenres.length === 0) {
       Alert.alert('Selecciona', 'Selecciona al menos un género');
       return;
     }
     console.log('Selected genres:', selectedGenres);
+    await finishSurvey();
     // TODO: Save to backend
     navigation.replace('MainTabs');
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    await finishSurvey();
     navigation.replace('MainTabs');
   };
 
