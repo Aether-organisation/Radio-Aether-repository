@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import api from '../api/axios';
 
@@ -25,6 +25,25 @@ export const SurveyScreen = () => {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const navigation = useNavigation<any>();
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(translateYAnim, {
+        toValue: 0,
+        tension: 20,
+        friction: 7,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, [fadeAnim, translateYAnim]);
+
   const toggleGenre = (genre: string) => {
     if (selectedGenres.includes(genre)) {
       setSelectedGenres(selectedGenres.filter(g => g !== genre));
@@ -33,12 +52,29 @@ export const SurveyScreen = () => {
     }
   };
 
-  const finishSurvey = async () => {
+  const finishSurvey = async (genres: string[]) => {
     try {
-      await api.put('/api/user/survey-completed');
+      await api.put('/api/user/survey-completed', { favoriteGenres: genres });
     } catch (e) {
       console.error('Error completing survey:', e);
     }
+  };
+
+  const navigateOut = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 50,
+        duration: 500,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      navigation.replace('MainTabs');
+    });
   };
 
   const handleFinish = async () => {
@@ -47,18 +83,17 @@ export const SurveyScreen = () => {
       return;
     }
     console.log('Selected genres:', selectedGenres);
-    await finishSurvey();
-    // TODO: Save to backend
-    navigation.replace('MainTabs');
+    await finishSurvey(selectedGenres);
+    navigateOut();
   };
 
   const handleSkip = async () => {
-    await finishSurvey();
-    navigation.replace('MainTabs');
+    await finishSurvey([]);
+    navigateOut();
   };
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ translateY: translateYAnim }] }]}>
       <Text style={styles.title}>🎵 What moves you?</Text>
       <Text style={styles.subtitle}>Select your favorite genres</Text>
       
@@ -95,7 +130,7 @@ export const SurveyScreen = () => {
           <Text style={styles.finishText}>Finish</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Animated.View>
   );
 };
 

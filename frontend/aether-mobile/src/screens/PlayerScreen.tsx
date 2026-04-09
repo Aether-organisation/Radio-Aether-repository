@@ -6,7 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
 
 export const PlayerScreen = () => {
-  const { currentStation, isPlaying, loading, locationStatus, togglePlayback, unload } = useAudio();
+  const { currentStation, isPlaying, loading, locationStatus, togglePlayback, unload, error } = useAudio();
   const navigation = useNavigation<any>();
 
   const handleLogout = async () => {
@@ -38,9 +38,16 @@ export const PlayerScreen = () => {
       <Text style={styles.stationName}>{currentStation.name}</Text>
       <Text style={styles.genre}>{currentStation.genre}</Text>
       <Text style={styles.locationTag}>{locationStatus}</Text>
-      <TouchableOpacity style={styles.playButton} onPress={togglePlayback}>
-        <Text style={styles.playIcon}>{isPlaying ? '⏸️' : '▶️'}</Text>
-      </TouchableOpacity>
+      
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>⚠️ {error}</Text>
+        </View>
+      ) : (
+        <TouchableOpacity style={styles.playButton} onPress={togglePlayback}>
+          <Text style={styles.playIcon}>{isPlaying ? '⏸️' : '▶️'}</Text>
+        </TouchableOpacity>
+      )}
       <Text style={styles.debugText}>ID: {currentStation.id?.substring(0,8) || '???'}</Text>
       <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
         <Text style={styles.logoutText}>Cerrar Sesión</Text>
@@ -120,6 +127,20 @@ const styles = StyleSheet.create({
   logoutText: {
     color: 'red',
     fontSize: 16,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'red',
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#ff4d4d',
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
 

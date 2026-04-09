@@ -2,8 +2,8 @@ package com.aether.RadioAether.service.interfaces;
 
 import com.aether.RadioAether.model.dto.request.LocationRequest;
 import com.aether.RadioAether.model.dto.response.StationDTO;
-import com.aether.RadioAether.model.entity.Station;
-
+import com.aether.RadioAether.model.dto.RadioBrowserStationDTO;
+import java.util.List;
 public interface IRadioService {
 
     /**
@@ -11,7 +11,7 @@ public interface IRadioService {
      * @param request coordinates from the user
      * @return nearest station
      */
-    public StationDTO findNearestStation(LocationRequest request);
+    public List<StationDTO> findNearestStation(LocationRequest request);
 
     /**
      * Haversine formula
@@ -29,5 +29,5 @@ public interface IRadioService {
      * @param station station
      * @return StationDTO
      */
-    public StationDTO mapToDTO(Station station);
+    public StationDTO mapToDTO(RadioBrowserStationDTO station);
 }

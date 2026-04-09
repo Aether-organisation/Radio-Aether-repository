@@ -22,5 +22,7 @@ public class StationDTO {
     private String streamUrl;
     private String logoUrl;
     private String genre;
+    private Double latitude;
+    private Double longitude;
 }
 

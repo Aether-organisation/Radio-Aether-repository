@@ -12,9 +12,9 @@ import com.aether.RadioAether.model.dto.request.ChangePasswordRequest;
 import com.aether.RadioAether.model.dto.request.UpdateProfilePictureRequest;
 import com.aether.RadioAether.model.dto.response.UserProfileResponse;
 import com.aether.RadioAether.service.UserService;
-
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-
+import com.aether.RadioAether.model.dto.request.SurveyCompletedRequest;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -47,9 +47,12 @@ public class UserController {
     }
 
     @PutMapping("/survey-completed")
-    public ResponseEntity<String> completeSurvey(Authentication authentication) {
+    public ResponseEntity<String> completeSurvey(
+            @RequestBody(required = false) SurveyCompletedRequest request,
+            Authentication authentication) {
         String email = authentication.getName();
-        userService.completeSurvey(email);
+        List<String> genres = request != null ? request.getFavoriteGenres() : null;
+        userService.completeSurvey(email, genres);
         return ResponseEntity.ok("Survey completed successfully");
     }
 }

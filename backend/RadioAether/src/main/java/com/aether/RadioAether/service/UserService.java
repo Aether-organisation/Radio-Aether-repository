@@ -8,9 +8,9 @@ import com.aether.RadioAether.model.dto.request.UpdateProfilePictureRequest;
 import com.aether.RadioAether.model.dto.response.UserProfileResponse;
 import com.aether.RadioAether.model.entity.User;
 import com.aether.RadioAether.repository.UserRepository;
-
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-
+import com.aether.RadioAether.model.entity.UserPreferences;
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -50,11 +50,16 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void completeSurvey(String email) {
+    public void completeSurvey(String email, List<String> genres) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         user.setSurveyCompleted(true);
+        if (genres != null && !genres.isEmpty()) {
+            UserPreferences prefs = new UserPreferences();
+            prefs.setFavoriteGenres(genres);
+            user.setPreferences(prefs);
+        }
         userRepository.save(user);
     }
 }

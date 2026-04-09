@@ -12,6 +12,8 @@ import com.aether.RadioAether.model.dto.response.StationDTO;
 import com.aether.RadioAether.service.RadioService;
 
 import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for handling radio-related requests.
@@ -28,14 +30,18 @@ public class RadioController {
 
     @GetMapping("/mock")
     public ResponseEntity<StationDTO> getMockRadio() {
-        return ResponseEntity.ok(radioService.getMockRadio());
+        return ResponseEntity.ok(radioService.getFallbackStation());
     }
 
     @PostMapping("/nearest")
-    public ResponseEntity<StationDTO> getNearestStation(@RequestBody LocationRequest request) {
-        StationDTO recommendedStation = radioService.findNearestStation(request);
+    public ResponseEntity<?> getNearestStation(@RequestBody LocationRequest request) {
+        List<StationDTO> recommendedStations = radioService.findNearestStation(request);
         
-        return ResponseEntity.ok(recommendedStation);
+        if (recommendedStations == null || recommendedStations.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "No se puede acceder. No hay radios cercanas disponibles."));
+        }
+        
+        return ResponseEntity.ok(recommendedStations);
     }
 }
 

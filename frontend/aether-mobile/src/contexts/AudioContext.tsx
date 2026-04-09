@@ -11,8 +11,10 @@ interface AudioContextType {
   locationStatus: string;
   playStation: (station: RadioStation) => Promise<void>;
   togglePlayback: () => Promise<void>;
+  tryPlaySequence: (stations: RadioStation[]) => Promise<void>;
   loadNearestStation: () => Promise<void>;
   unload: () => Promise<void>;
+  error: string | null;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -34,6 +36,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [locationStatus, setLocationStatus] = useState('Ready');
+  const [error, setError] = useState<string | null>(null);
   
   const soundRef = useRef<Audio.Sound | null>(null);
 
@@ -56,36 +59,67 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
   const unload = async () => {
     if (soundRef.current) {
-      await soundRef.current.unloadAsync();
+      try {
+        await soundRef.current.unloadAsync();
+      } catch (e) {
+        console.warn('Unload error:', e);
+      }
       soundRef.current = null;
     }
     setIsPlaying(false);
     setCurrentStation(null);
+    setError(null);
+  };
+
+  const tryPlaySequence = async (stations: RadioStation[]) => {
+    await unload();
+    setLoading(true);
+    setError(null);
+    let sequenceSuccess = false;
+
+    for (const station of stations) {
+      try {
+        setCurrentStation(station);
+        const { sound } = await Audio.Sound.createAsync(
+          { 
+            uri: station.streamUrl,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+              'Accept': 'audio/mpeg, audio/aac, audio/*;q=0.9, */*;q=0.8'
+            }
+          },
+          { shouldPlay: true }
+        );
+        soundRef.current = sound;
+        setIsPlaying(true);
+        sequenceSuccess = true;
+        
+        sound.setOnPlaybackStatusUpdate((status: any) => {
+          if (status.isLoaded) {
+            setIsPlaying(status.isPlaying || false);
+          } else if (status.error) {
+            setError("Error en la reproducción del stream");
+            setIsPlaying(false);
+          }
+        });
+        break;
+      } catch (err) {
+        if (soundRef.current) {
+          await soundRef.current.unloadAsync().catch(() => {});
+          soundRef.current = null;
+        }
+      }
+    }
+
+    if (!sequenceSuccess) {
+      setError("No se pudo conectar con ninguna emisora");
+      setCurrentStation(null);
+    }
+    setLoading(false);
   };
 
   const playStation = async (station: RadioStation) => {
-    await unload();
-    setLoading(true);
-    try {
-      setCurrentStation(station);
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: station.streamUrl },
-        { shouldPlay: true }
-      );
-      soundRef.current = sound;
-      setIsPlaying(true);
-      sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.isLoaded) {
-          setIsPlaying(status.isPlaying || false);
-        } else if (status.error) {
-          console.error(`Player error: ${status.error}`);
-        }
-      });
-    } catch (error) {
-      console.error('Error loading stream:', error);
-    } finally {
-      setLoading(false);
-    }
+    await tryPlaySequence([station]);
   };
 
   const togglePlayback = async () => {
@@ -134,11 +168,13 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         latitude,
         longitude
       });
-      await playStation(res.data);
+      await tryPlaySequence(res.data);
       setLocationStatus('Ubicación sintonizada');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Load nearest error:', error);
-      setLocationStatus('Error - Modo sin GPS');
+      const errorMsg = error.response?.data?.message || "No hay radios cercanas disponibles";
+      setError(errorMsg);
+      setLocationStatus('Error local');
       setLoading(false);
     }
   };
@@ -150,9 +186,11 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       loading,
       locationStatus,
       playStation,
+      tryPlaySequence,
       togglePlayback,
       loadNearestStation,
-      unload
+      unload,
+      error
     }}>
       {children}
     </AudioContext.Provider>
