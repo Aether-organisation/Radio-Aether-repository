@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { HomeScreenProps } from '../types/navigation';
 import { useAudio } from '../contexts/AudioContext';
+import { useFavorites } from '../contexts/FavoritesContext';
 import { RadioStation } from '../types';
 import api from '../api/axios';
 
@@ -49,7 +50,10 @@ interface StationCardProps {
 
 const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, enterAnim }) => {
   const [imgError, setImgError] = useState(false);
-  const playScale = useRef(new Animated.Value(1)).current;
+  const playScale  = useRef(new Animated.Value(1)).current;
+  const heartScale = useRef(new Animated.Value(1)).current;
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const fav = isFavorite(station.id);
 
   const handlePress = () => {
     Animated.sequence([
@@ -57,6 +61,15 @@ const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, e
       Animated.spring(playScale, { toValue: 1,    tension: 80,  friction: 6, useNativeDriver: true }),
     ]).start();
     onPress(station);
+  };
+
+  const handleFavorite = () => {
+    Animated.sequence([
+      Animated.spring(heartScale, { toValue: 0.7, tension: 200, friction: 5, useNativeDriver: true }),
+      Animated.spring(heartScale, { toValue: 1.3, tension: 100, friction: 4, useNativeDriver: true }),
+      Animated.spring(heartScale, { toValue: 1,   tension: 80,  friction: 6, useNativeDriver: true }),
+    ]).start();
+    toggleFavorite(station);
   };
 
   const translateY = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] });
@@ -87,6 +100,17 @@ const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, e
             <Ionicons name="musical-notes" size={11} color="#fff" />
           </View>
         )}
+
+        {/* Heart button */}
+        <Animated.View style={[styles.heartWrap, { transform: [{ scale: heartScale }] }]}>
+          <TouchableOpacity onPress={handleFavorite} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Ionicons
+              name={fav ? 'heart' : 'heart-outline'}
+              size={18}
+              color={fav ? '#ff4d7d' : 'rgba(255,255,255,0.75)'}
+            />
+          </TouchableOpacity>
+        </Animated.View>
       </View>
 
       {/* Info */}
@@ -452,6 +476,11 @@ const styles = StyleSheet.create({
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  heartWrap: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
   },
   cardBody: {
     flex: 1,

@@ -15,6 +15,7 @@ export type RootTabParamList = {
   SearchTab: undefined;
   LibraryTab: undefined;
   ProfileTab: undefined;
+  NowPlayingTab: undefined;
 };
 
 export type HomeScreenProps = BottomTabScreenProps<RootTabParamList, 'HomeTab'>;
