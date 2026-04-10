@@ -78,9 +78,18 @@ public class RadioService implements IRadioService {
                 .streamUrl(station.getUrlResolved())
                 .logoUrl(station.getFavicon())
                 .genre(station.getTags())
+                .country(station.getCountry())
+                .countryCode(station.getCountryCode())
                 .latitude(station.getGeoLat())
                 .longitude(station.getGeoLong())
                 .build();
+    }
+
+    public List<StationDTO> searchStations(String query, String type) {
+        return radioBrowserClient.searchStations(query, type)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
     
     public List<StationDTO> findForYou(String email) {

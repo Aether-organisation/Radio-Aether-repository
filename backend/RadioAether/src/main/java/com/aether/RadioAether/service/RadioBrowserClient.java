@@ -120,4 +120,36 @@ public class RadioBrowserClient {
         return new ArrayList<>();
     }
 
+    public List<RadioBrowserStationDTO> searchStations(String query, String type) {
+        String param = switch (type) {
+            case "country" -> "country";
+            case "genre"   -> "tag";
+            default        -> "name";
+        };
+
+        try {
+            List<RadioBrowserStationDTO> results = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/json/stations/search")
+                            .queryParam(param, query)
+                            .queryParam("hidebroken", "true")
+                            .queryParam("lastcheckok", "1")
+                            .queryParam("limit", "20")
+                            .queryParam("order", "clickcount")
+                            .queryParam("reverse", "true")
+                            .build())
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<RadioBrowserStationDTO>>() {});
+
+            if (results == null) return new ArrayList<>();
+
+            return results.stream()
+                    .filter(s -> s.getUrlResolved() != null && !s.getUrlResolved().isBlank())
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
 }

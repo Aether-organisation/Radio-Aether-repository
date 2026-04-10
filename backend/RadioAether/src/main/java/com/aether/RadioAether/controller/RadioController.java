@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.aether.RadioAether.model.dto.request.LocationRequest;
@@ -43,6 +44,16 @@ public class RadioController {
         }
         
         return ResponseEntity.ok(recommendedStations);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<StationDTO>> searchStations(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "name") String type) {
+        if (q == null || q.isBlank() || q.length() < 2) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(radioService.searchStations(q.trim(), type));
     }
 
     @GetMapping("/foryou")

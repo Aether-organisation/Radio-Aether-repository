@@ -13,6 +13,9 @@ public class RadioBrowserStationDTO {
     private String codec;
     private String tags;
     private String favicon;
+    private String country;
+    @JsonProperty("countrycode")
+    private String countryCode;
     @JsonProperty("geo_lat")
     private Double geoLat;
     @JsonProperty("geo_long")
