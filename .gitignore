@@ -1,0 +1,88 @@
+# ── IA / Asistentes de código ────────────────────────────────────────────────
+.claude/
+.cursor/
+.copilot/
+.aider*
+*.anthropic
+*.openai
+
+# ── Variables de entorno y secretos ─────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.yml
+secrets.yaml
+
+# ── Java / Maven / Spring Boot ───────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ── Node / React Native / Expo ───────────────────────────────────────────────
+node_modules/
+.expo/
+.expo-shared/
+dist/
+build/
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+*.orig.*
+web-build/
+.bundle/
+
+# ── Android ──────────────────────────────────────────────────────────────────
+*.apk
+*.aab
+*.ap_
+*.dex
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/local.properties
+/android/captures/
+/android/.externalNativeBuild/
+/android/.cxx/
+/android/key.properties
+
+# ── iOS ───────────────────────────────────────────────────────────────────────
+/ios/Pods/
+/ios/build/
+*.xcworkspace/xcuserdata
+*.xcodeproj/xcuserdata
+*.xcodeproj/project.xcworkspace/xcuserdata
+
+# ── IDEs ─────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/settings.json
+.vscode/*.code-workspace
+*.swp
+*.swo
+*~
+
+# ── Sistema operativo ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
