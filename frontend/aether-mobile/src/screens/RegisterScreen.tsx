@@ -72,6 +72,7 @@ export const RegisterScreen = ({ navigation }: any) => {
             });
 
             await SecureStore.setItemAsync('jwt_token', response.data.token);
+            await SecureStore.setItemAsync('user_name', nombre);
 
             if (!response.data.surveyCompleted) {
                 navigation.replace('Survey');

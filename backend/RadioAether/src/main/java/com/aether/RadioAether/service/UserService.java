@@ -50,14 +50,19 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void completeSurvey(String email, List<String> genres) {
+    public void completeSurvey(String email, List<String> genres, String gender) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         user.setSurveyCompleted(true);
-        if (genres != null && !genres.isEmpty()) {
+        if ((genres != null && !genres.isEmpty()) || gender != null) {
             UserPreferences prefs = new UserPreferences();
-            prefs.setFavoriteGenres(genres);
+            if (genres != null && !genres.isEmpty()) {
+                prefs.setFavoriteGenres(genres);
+            }
+            if (gender != null) {
+                prefs.setGenero(gender);
+            }
             user.setPreferences(prefs);
         }
         userRepository.save(user);

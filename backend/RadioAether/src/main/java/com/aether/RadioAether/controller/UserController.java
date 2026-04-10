@@ -52,7 +52,8 @@ public class UserController {
             Authentication authentication) {
         String email = authentication.getName();
         List<String> genres = request != null ? request.getFavoriteGenres() : null;
-        userService.completeSurvey(email, genres);
+        String gender = request != null ? request.getGender() : null;
+        userService.completeSurvey(email, genres, gender);
         return ResponseEntity.ok("Survey completed successfully");
     }
 }

@@ -26,8 +26,11 @@ public class UserPreferences {
     @EqualsAndHashCode.Include
     private Long id;
 
+    @Column(name = "genero")
+    private String genero;
+
     @ElementCollection
     @CollectionTable(name = "GENEROS_FAVORITOS", joinColumns = @JoinColumn(name = "id_preferencias"))
-    @Column(name = "genero")
+    @Column(name = "genero_musical")
     private List<String> favoriteGenres = new ArrayList<>();
 }

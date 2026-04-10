@@ -6,4 +6,5 @@ import lombok.Data;
 @Data
 public class SurveyCompletedRequest {
     private List<String> favoriteGenres;
+    private String gender;
 }
