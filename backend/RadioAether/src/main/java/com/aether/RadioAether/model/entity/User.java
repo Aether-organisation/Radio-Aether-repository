@@ -49,6 +49,9 @@ public class User implements UserDetails{
 
     @Column(name = "encuesta_completada", nullable = false)
     private boolean surveyCompleted = false;
+
+    @Column(name = "genero")
+    private String genero;
     
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "id_preferencias")

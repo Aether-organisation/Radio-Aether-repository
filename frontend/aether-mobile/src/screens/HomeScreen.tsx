@@ -1,80 +1,539 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  View, Text, FlatList, TouchableOpacity, StyleSheet,
+  Animated, Image, Easing, Alert,
+} from 'react-native';
+import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { HomeScreenProps } from '../types/navigation';
 import { useAudio } from '../contexts/AudioContext';
-import { MiniPlayer } from '../components/MiniPlayer';
+import { RadioStation } from '../types';
+import api from '../api/axios';
+
+const CARD_WIDTH    = 160;
+const CARD_HEIGHT   = 200;
+const SKELETON_COUNT = 4;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h < 12) return { text: 'Buenos días',   emoji: '☀️' };
+  if (h < 19) return { text: 'Buenas tardes', emoji: '🌤️' };
+  return       { text: 'Buenas noches',       emoji: '🌙' };
+};
+
+// ─── Skeleton card ────────────────────────────────────────────────────────────
+
+const SkeletonCard: React.FC<{ pulse: Animated.Value }> = ({ pulse }) => {
+  const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.55] });
+  return (
+    <Animated.View style={[styles.card, styles.skeletonCard, { opacity }]}>
+      <View style={styles.skeletonImage} />
+      <View style={styles.skeletonLine} />
+      <View style={[styles.skeletonLine, styles.skeletonLineShort]} />
+    </Animated.View>
+  );
+};
+
+// ─── Station card ─────────────────────────────────────────────────────────────
+
+interface StationCardProps {
+  station: RadioStation;
+  isActive: boolean;
+  onPress: (station: RadioStation) => void;
+  enterAnim: Animated.Value;
+}
+
+const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, enterAnim }) => {
+  const [imgError, setImgError] = useState(false);
+  const playScale = useRef(new Animated.Value(1)).current;
+
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.spring(playScale, { toValue: 0.88, tension: 150, friction: 5, useNativeDriver: true }),
+      Animated.spring(playScale, { toValue: 1,    tension: 80,  friction: 6, useNativeDriver: true }),
+    ]).start();
+    onPress(station);
+  };
+
+  const translateY = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] });
+  const opacity    = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [0,  1] });
+  const hasLogo    = !!station.logoUrl && !imgError;
+
+  return (
+    <Animated.View style={[styles.card, { opacity, transform: [{ translateY }] }]}>
+      {/* Logo */}
+      <View style={styles.cardImageContainer}>
+        {hasLogo ? (
+          <Image
+            source={{ uri: station.logoUrl }}
+            style={styles.cardImage}
+            onError={() => setImgError(true)}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.cardImage, styles.cardImageFallback]}>
+            <Text style={styles.cardImageFallbackText}>
+              {station.name?.charAt(0)?.toUpperCase() ?? '🎵'}
+            </Text>
+          </View>
+        )}
+
+        {isActive && (
+          <View style={styles.playingBadge}>
+            <Ionicons name="musical-notes" size={11} color="#fff" />
+          </View>
+        )}
+      </View>
+
+      {/* Info */}
+      <View style={styles.cardBody}>
+        <Text style={styles.cardName} numberOfLines={2}>{station.name}</Text>
+        {!!station.genre && (
+          <Text style={styles.cardGenre} numberOfLines={1}>
+            · {station.genre.split(',')[0].trim()}
+          </Text>
+        )}
+      </View>
+
+      {/* Play button */}
+      <Animated.View style={[styles.playBtnWrap, { transform: [{ scale: playScale }] }]}>
+        <TouchableOpacity
+          style={[styles.playBtn, isActive && styles.playBtnActive]}
+          onPress={handlePress}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name={isActive ? 'pause' : 'play'}
+            size={14}
+            color="#fff"
+            style={{ marginLeft: isActive ? 0 : 2 }}
+          />
+        </TouchableOpacity>
+      </Animated.View>
+    </Animated.View>
+  );
+};
+
+// ─── SectionHeader ───────────────────────────────────────────────────────────
+
+const SectionHeader: React.FC<{ icon: string; title: string }> = ({ icon, title }) => (
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionIcon}>{icon}</Text>
+    <Text style={styles.sectionTitle}>{title}</Text>
+  </View>
+);
+
+// ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const navigation = useNavigation<any>();
-  const { unload } = useAudio();
+  const { playStation, currentStation, unload } = useAudio();
 
-  const handleLogout = async () => {
-    Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro que quieres cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sí, Cerrar',
-          style: 'destructive',
-          onPress: async () => {
-            await unload();
-            await SecureStore.deleteItemAsync('jwt_token');
-            navigation.replace('Login');
-          },
-        },
-      ]
-    );
+  const [userName, setUserName]                     = useState('');
+  const [nearestStations, setNearestStations]       = useState<RadioStation[]>([]);
+  const [recommendedStations, setRecommended]       = useState<RadioStation[]>([]);
+  const [nearestLoading, setNearestLoading]         = useState(true);
+  const [recommendedLoading, setRecommendedLoading] = useState(true);
+  const [locationDenied, setLocationDenied]         = useState(false);
+
+  // ── Animations ──────────────────────────────────────────────────────────────
+  const masterFade  = useRef(new Animated.Value(0)).current;
+  const headerSlide = useRef(new Animated.Value(-16)).current;
+  const sec1Slide   = useRef(new Animated.Value(36)).current;
+  const sec2Slide   = useRef(new Animated.Value(36)).current;
+  const pulse       = useRef(new Animated.Value(0)).current;
+
+  const nearestAnims = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
+  const forYouAnims  = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
+
+  // Skeleton shimmer loop
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 850, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 850, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  // Screen entrance
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(masterFade,  { toValue: 1, duration: 550, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.spring(headerSlide, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
+      Animated.sequence([Animated.delay(130), Animated.spring(sec1Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
+      Animated.sequence([Animated.delay(260), Animated.spring(sec2Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
+    ]).start();
+  }, []);
+
+  const staggerCards = useCallback((anims: Animated.Value[]) => {
+    Animated.stagger(
+      60,
+      anims.map(a => Animated.spring(a, { toValue: 1, tension: 70, friction: 10, useNativeDriver: true }))
+    ).start();
+  }, []);
+
+  // ── Data fetching ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    SecureStore.getItemAsync('user_name').then(n => { if (n) setUserName(n); });
+    fetchNearest();
+    fetchForYou();
+  }, []);
+
+  const fetchNearest = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') { setLocationDenied(true); setNearestLoading(false); return; }
+
+      let location;
+      try {
+        location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      } catch {
+        location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
+      }
+      const res = await api.post('/api/radio/nearest', {
+        latitude:  location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+      setNearestStations(res.data);
+      staggerCards(nearestAnims.slice(0, res.data.length));
+    } catch (e) {
+      console.error('Nearest fetch error:', e);
+    } finally {
+      setNearestLoading(false);
+    }
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>🏠 Home</Text>
-        <Text style={styles.subtitle}>Welcome to Aether Radio</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
-        </TouchableOpacity>
-      </View>
+  const fetchForYou = async () => {
+    try {
+      const res = await api.get('/api/radio/foryou');
+      setRecommended(res.data);
+      staggerCards(forYouAnims.slice(0, res.data.length));
+    } catch (e) {
+      console.error('ForYou fetch error:', e);
+    } finally {
+      setRecommendedLoading(false);
+    }
+  };
+
+  // ── Logout ──────────────────────────────────────────────────────────────────
+  const handleLogout = () => {
+    Alert.alert('Cerrar Sesión', '¿Estás seguro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sí, salir', style: 'destructive',
+        onPress: async () => {
+          await unload();
+          await SecureStore.deleteItemAsync('jwt_token');
+          await SecureStore.deleteItemAsync('user_name');
+          navigation.replace('Login');
+        },
+      },
+    ]);
+  };
+
+  // ── Render helpers ──────────────────────────────────────────────────────────
+  const greeting = getGreeting();
+
+  const renderStation = (
+    { item, index }: { item: RadioStation; index: number },
+    anims: Animated.Value[]
+  ) => (
+    <StationCard
+      station={item}
+      isActive={currentStation?.id === item.id}
+      onPress={playStation}
+      enterAnim={anims[index] ?? new Animated.Value(1)}
+    />
+  );
+
+  const renderSkeletons = () => (
+    <View style={styles.skeletonRow}>
+      {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+        <SkeletonCard key={i} pulse={pulse} />
+      ))}
     </View>
   );
+
+  // ────────────────────────────────────────────────────────────────────────────
+  return (
+    <Animated.ScrollView
+      style={[styles.container, { opacity: masterFade }]}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
+      <Animated.View style={[styles.header, { transform: [{ translateY: headerSlide }] }]}>
+        <View>
+          <Text style={styles.appName}>AETHER</Text>
+          <Text style={styles.greeting}>
+            {greeting.text}{userName ? `, ${userName}` : ''} {greeting.emoji}
+          </Text>
+          <Text style={styles.greetingSub}>Descubre tu próxima emisora favorita</Text>
+        </View>
+        <TouchableOpacity style={styles.avatarBtn} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color="#9399B2" />
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* Emisoras Cercanas */}
+      <Animated.View style={[styles.section, { transform: [{ translateY: sec1Slide }] }]}>
+        <SectionHeader icon="📍" title="Emisoras Cercanas" />
+
+        {nearestLoading ? renderSkeletons()
+          : locationDenied ? (
+            <View style={styles.emptyBox}>
+              <Ionicons name="location-outline" size={30} color="#9399B2" />
+              <Text style={styles.emptyText}>Activa la ubicación para ver{'\n'}emisoras cercanas</Text>
+            </View>
+          ) : nearestStations.length === 0 ? (
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyText}>No hay emisoras disponibles en tu zona</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={nearestStations}
+              keyExtractor={item => item.id}
+              renderItem={info => renderStation(info, nearestAnims)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              getItemLayout={(_, i) => ({ length: CARD_WIDTH + 12, offset: (CARD_WIDTH + 12) * i, index: i })}
+            />
+          )}
+      </Animated.View>
+
+      {/* Recomendadas para ti */}
+      <Animated.View style={[styles.section, { transform: [{ translateY: sec2Slide }] }]}>
+        <SectionHeader icon="✨" title="Recomendadas para ti" />
+
+        {recommendedLoading ? renderSkeletons()
+          : recommendedStations.length === 0 ? (
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyText}>Completa el cuestionario para{'\n'}ver recomendaciones</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={recommendedStations}
+              keyExtractor={item => item.id}
+              renderItem={info => renderStation(info, forYouAnims)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              getItemLayout={(_, i) => ({ length: CARD_WIDTH + 12, offset: (CARD_WIDTH + 12) * i, index: i })}
+            />
+          )}
+      </Animated.View>
+    </Animated.ScrollView>
+  );
 };
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const ACCENT     = '#646cff';
+const ACCENT_DIM = 'rgba(100,108,255,0.18)';
+const BG         = '#0E0E1A';
+const SURFACE    = '#16162A';
+const BORDER     = '#2D2D4A';
+const TEXT       = '#FFFFFF';
+const SUBTEXT    = '#9399B2';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: BG,
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
+  scrollContent: {
+    paddingBottom: 120,
+  },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    paddingTop: 56,
+    paddingBottom: 24,
+  },
+  appName: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: ACCENT,
+    letterSpacing: 5,
+    marginBottom: 8,
+  },
+  greeting: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: TEXT,
+    marginBottom: 4,
+  },
+  greetingSub: {
+    fontSize: 13,
+    color: SUBTEXT,
+  },
+  avatarBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: SURFACE,
+    borderWidth: 1,
+    borderColor: BORDER,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
   },
-  title: {
-    fontSize: 32,
-    color: '#fff',
-    fontWeight: 'bold',
+
+  // Sections
+  section: {
+    marginBottom: 32,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#888',
-    marginTop: 10,
-    marginBottom: 40,
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 14,
+    gap: 8,
   },
-  logoutButton: {
-    backgroundColor: '#ff4444',
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    borderRadius: 8,
+  sectionIcon: {
+    fontSize: 18,
   },
-  logoutText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: TEXT,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+
+  // Station card
+  card: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    overflow: 'hidden',
+  },
+  cardImageContainer: {
+    width: '100%',
+    height: 100,
+    position: 'relative',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  cardImageFallback: {
+    backgroundColor: ACCENT_DIM,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardImageFallbackText: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: ACCENT,
+  },
+  playingBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: ACCENT,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardBody: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingTop: 10,
+  },
+  cardName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: TEXT,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  cardGenre: {
+    fontSize: 11,
+    color: SUBTEXT,
+    fontWeight: '500',
+  },
+  playBtnWrap: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+  },
+  playBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: ACCENT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: ACCENT,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  playBtnActive: {
+    backgroundColor: '#4a52d4',
+  },
+
+  // Skeleton
+  skeletonCard: {
+    backgroundColor: SURFACE,
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 20,
+  },
+  skeletonImage: {
+    width: '100%',
+    height: 100,
+    backgroundColor: BORDER,
+  },
+  skeletonLine: {
+    marginHorizontal: 10,
+    marginTop: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: BORDER,
+  },
+  skeletonLineShort: {
+    width: '50%',
+    marginTop: 8,
+  },
+
+  // Empty states
+  emptyBox: {
+    marginHorizontal: 20,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: 'center',
+    gap: 10,
+  },
+  emptyText: {
+    color: SUBTEXT,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
-
-
-

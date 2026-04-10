@@ -55,14 +55,12 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setSurveyCompleted(true);
-        if ((genres != null && !genres.isEmpty()) || gender != null) {
+        if (gender != null) {
+            user.setGenero(gender);
+        }
+        if (genres != null && !genres.isEmpty()) {
             UserPreferences prefs = new UserPreferences();
-            if (genres != null && !genres.isEmpty()) {
-                prefs.setFavoriteGenres(genres);
-            }
-            if (gender != null) {
-                prefs.setGenero(gender);
-            }
+            prefs.setFavoriteGenres(genres);
             user.setPreferences(prefs);
         }
         userRepository.save(user);

@@ -1,6 +1,7 @@
 package com.aether.RadioAether.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,6 +43,13 @@ public class RadioController {
         }
         
         return ResponseEntity.ok(recommendedStations);
+    }
+
+    @GetMapping("/foryou")
+    public ResponseEntity<List<StationDTO>> getForYou(Authentication authentication) {
+        String email = authentication.getName();
+        List<StationDTO> stations = radioService.findForYou(email);
+        return ResponseEntity.ok(stations);
     }
 }
 

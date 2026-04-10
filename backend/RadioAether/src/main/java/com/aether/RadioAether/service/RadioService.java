@@ -11,6 +11,8 @@ import com.aether.RadioAether.model.dto.request.LocationRequest;
 import com.aether.RadioAether.model.dto.response.StationDTO;
 import com.aether.RadioAether.service.interfaces.IRadioService;
 import com.aether.RadioAether.model.dto.RadioBrowserStationDTO;
+import com.aether.RadioAether.model.entity.User;
+import com.aether.RadioAether.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +22,7 @@ import java.util.Comparator;
 public class RadioService implements IRadioService {
 
     private final RadioBrowserClient radioBrowserClient;
+    private final UserRepository userRepository;
     private List<StationDTO> cachedStations = new ArrayList<>();
 
     private static final int EARTH_RADIUS = 6371;
@@ -80,6 +83,41 @@ public class RadioService implements IRadioService {
                 .build();
     }
     
+    public List<StationDTO> findForYou(String email) {
+        List<String> preferredGenres = new ArrayList<>();
+
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user != null && user.getPreferences() != null
+                && user.getPreferences().getFavoriteGenres() != null) {
+            preferredGenres = user.getPreferences().getFavoriteGenres()
+                    .stream()
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+        }
+
+        if (cachedStations.isEmpty()) {
+            return List.of(getFallbackStation());
+        }
+
+        if (preferredGenres.isEmpty()) {
+            return cachedStations.stream().limit(10).collect(Collectors.toList());
+        }
+
+        final List<String> genres = preferredGenres;
+        List<StationDTO> matched = cachedStations.stream()
+                .filter(station -> {
+                    if (station.getGenre() == null) return false;
+                    String stationGenre = station.getGenre().toLowerCase();
+                    return genres.stream().anyMatch(stationGenre::contains);
+                })
+                .limit(10)
+                .collect(Collectors.toList());
+
+        return matched.isEmpty()
+                ? cachedStations.stream().limit(10).collect(Collectors.toList())
+                : matched;
+    }
+
     public StationDTO getFallbackStation() {
         return StationDTO.builder()
                 .id(UUID.randomUUID().toString())
