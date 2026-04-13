@@ -1,129 +1,176 @@
-# Radio Aether 
+# Radio Aether
 
-![Project Status](https://img.shields.io/badge/Status-Done-green?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-v4.0.0--ORBIT-646cff?style=for-the-badge)
+![Project Status](https://img.shields.io/badge/Status-En%20Desarrollo-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Academic-lightgrey?style=for-the-badge)
-![Tech Stack](https://img.shields.io/badge/Stack-Java_Spring_React-orange?style=for-the-badge)
+![Tech Stack](https://img.shields.io/badge/Stack-Java_Spring_Angular_React_Native-orange?style=for-the-badge)
 
+> Proyecto Académico · IES Puerto de la Cruz · 2º DAM
 
-## 🏗️ Arquitectura del Sistema (v1.0)
+---
 
-Para esta primera fase, hemos implementado una arquitectura monolítica modular optimizada para despliegue rápido y consistencia de datos (ACID).
+## 📖 ¿Qué es Radio Aether?
 
-### 📐 Modelo de Datos (ERD)
+Radio Aether es una plataforma de streaming de radio en línea compuesta por una **aplicación móvil** (Android/iOS), un **backend REST** y, a partir de esta versión, una **web pública** y un sistema de gestión empresarial con **Odoo**. Permite descubrir emisoras de todo el mundo, recibir recomendaciones personalizadas por géneros y ubicación, y guardar favoritos.
 
-El núcleo de Aether se basa en un esquema relacional normalizado que soporta **Roles (RBAC)**, **Usuarios** y **Metadatos de Emisoras**.
+---
 
-```mermaid
-erDiagram
-    %% BLOQUE DE SEGURIDAD
-    USUARIOS ||--|{ USUARIOS_ROLES : "Tiene (N:M)"
-    ROLES ||--|{ USUARIOS_ROLES : "Asignado a"
-    
-    %% BLOQUE PRINCIPAL
-    USUARIOS {
-        long id_usuario PK
-        string email
-        string password_hash
-        boolean activo
-    }
-    ROLES {
-        int id_rol PK
-        string nombre_rol
-    }
+## 🏗️ Arquitectura del Sistema (v4 - ORBIT)
 
 ```
+Cliente móvil (Expo)          Cliente web (Angular)
+        │                             │
+        └──────────┬──────────────────┘
+                   │ HTTPS
+                   ▼
+             [ Nginx + SSL ]          ← Reverse proxy / SSL termination
+                   │
+        ┌──────────┼──────────────┐
+        ▼          ▼              ▼
+   [ Backend ]  [ Angular ]   [ Odoo ]
+   Spring Boot   (estático)   ERP :8069
+     :8080                        │
+        │                         │ webhook
+        └──────────────────────────┘
+                   │
+             [ SQLite DB ]
+```
+
+Todo el sistema (excepto el cliente móvil) corre dentro de **Docker Compose**, con Nginx como único punto de entrada en HTTPS.
 
 ---
 
-## ✅ Funcionalidades Implementadas (v1 - Genesis)
+## ✅ Funcionalidades implementadas
 
-Lo que ya funciona en el código actual:
+### 🔐 Seguridad y Autenticación
+- JWT stateless con Spring Security
+- BCrypt para hashing de contraseñas
+- RBAC: roles `USER`, `ADMIN`, `B2B`
+- Tokens almacenados en Secure Storage del dispositivo (Keychain/Keystore)
 
-### 🔐 1. Seguridad y Autenticación (Spring Security)
+### 📱 Aplicación Móvil (React Native + Expo)
+- Registro e inicio de sesión
+- Encuesta inicial de géneros musicales (redirige automáticamente si no está completada)
+- **Home:** emisoras cercanas por geolocalización + recomendaciones personalizadas por géneros
+- **Búsqueda:** por nombre, país o género (Radio Browser API)
+- **Biblioteca:** lista de emisoras favoritas
+- **Perfil:** foto, nombre, cambio de contraseña
+- MiniPlayer persistente + PlayerScreen en pantalla completa
+- Streaming de audio con `expo-av`
 
-* **JWT (JSON Web Tokens):** Implementación de seguridad *Stateless*. El servidor no guarda sesiones, valida criptográficamente cada petición.
-* **BCrypt Hashing:** Las contraseñas nunca se guardan en texto plano.
-* **RBAC (Role-Based Access Control):** Sistema preparado para diferenciar entre `USER`, `ADMIN` y `B2B`.
+### 🌍 Integración con Radio Browser API
+- +30.000 emisoras de todo el mundo
+- Geolocalización con fórmula de Haversine para encontrar las más cercanas
+- Caché en memoria al arrancar el servidor para minimizar llamadas externas
 
-### 📱 2. Cliente Móvil (React Native + Expo)
+### 📴 Modo Offline *(nuevo en v4)*
+- Base de datos local en el dispositivo con `expo-sqlite`
+- Favoritos y últimas emisoras vistas disponibles sin conexión
+- La app detecta si hay red y cambia entre datos locales y remotos automáticamente
 
-* **Reproducción de Audio:** Uso de `expo-av` para streaming de baja latencia.
-* **Secure Storage:** Los tokens de sesión se guardan en el área encriptada del dispositivo (Keychain/Keystore), no en texto plano.
-* **Interfaz Nativa:** Navegación fluida y componentes adaptados al SO.
+### ⭐ Emisoras Destacadas *(nuevo en v4)*
+- Las emisoras pueden solicitar aparecer en la sección "Destacadas" de la app
+- Gestión de solicitudes a través del módulo Odoo personalizado
+- Aprobación manual por el administrador en el panel de Odoo
+- Webhook Odoo → Spring Boot para activar el destacado automáticamente
+- Las emisoras destacadas expiran tras un tiempo predefinido (`@Scheduled`)
 
-### 💾 3. Persistencia Ligera (SQLite)
+### 🌐 Web Pública Angular *(nuevo en v4)*
+- Landing page de la plataforma
+- Formulario de solicitud para que emisoras pidan ser destacadas
+- Servida como contenido estático por Nginx
 
-* Uso de **SQLite** como motor de base de datos embebido.
-* *Justificación:* Garantiza la portabilidad total del proyecto sin necesidad de contenedores Docker externos en esta fase, alineándose con la filosofía *Edge Computing*.
-
----
-
-## 🚀 Roadmap (Siguientes Pasos)
-
-El desarrollo continúa hacia la **v2**. Estas son las funcionalidades planificadas:
-
-* [ ] **Base de Datos Real de Emisoras:** Migrar del Mock actual a persistencia en BBDD.
-* [ ] **Historial de Escucha:** Registrar qué escucha cada usuario.
-* [ ] **API's:** Integración de API's necesarias para realizar las funciones.
-* [ ] **Geolocalización:** Primeros pasos de geolocalización para recomnedar readios.
+### 🐳 Infraestructura Docker *(nuevo en v4)*
+- Todo el backend, web y Odoo corren en contenedores con un único `docker-compose up`
+- Nginx como reverse proxy con SSL (HTTPS) 
+- Certificados SSL gestionados con `mkcert`
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
 | Capa | Tecnología | Descripción |
-| --- | --- | --- |
-| **Backend** | **Java 17 + Spring Boot 3** | API REST, Seguridad y Lógica de Negocio. |
-| **Frontend** | **React Native + Expo** | Aplicación móvil híbrida (Android/iOS). |
-| **Base de Datos** | **SQLite** | Persistencia relacional ligera y portable. |
-| **Seguridad** | **Spring Security + JWT** | Protección de endpoints y cifrado. |
-| **Comunicación** | **Axios** | Cliente HTTP con interceptores de seguridad. |
+|---|---|---|
+| **Backend** | Java 17 + Spring Boot 4 | API REST, seguridad y lógica de negocio |
+| **Frontend móvil** | React Native 0.81 + Expo 54 | App híbrida Android/iOS |
+| **Frontend web** | Angular | Landing page y formulario de solicitud |
+| **Base de datos backend** | PostgreSQL | Persistencia del servidor en Docker |
+| **Base de datos móvil** | SQLite (`expo-sqlite`) | Almacenamiento local en el dispositivo para modo offline |
+| **ERP** | Odoo | Gestión de solicitudes de emisoras destacadas |
+| **Proxy / SSL** | Nginx | Reverse proxy, SSL termination, servido de estáticos |
+| **Contenedores** | Docker + Docker Compose | Orquestación de todos los servicios |
+| **Seguridad** | Spring Security + JWT | Protección de endpoints y cifrado |
+| **API externa** | Radio Browser API | Catálogo global de emisoras |
 
 ---
 
 ## ⚙️ Instrucciones de Ejecución
 
-Sigue estos pasos para levantar el entorno de desarrollo local.
+### Con Docker (backend + web + Odoo)
 
-### 1. Backend (Servidor)
-
-Necesitas **Java 17** y **Maven**.
+Necesitas **Docker** y **Docker Compose** instalados.
 
 ```bash
-cd RadioAether
-# El comando siguiente descarga dependencias y arranca el servidor en puerto 8080
-mvn spring-boot:run
-
+docker-compose up --build
 ```
 
-*El servidor creará automáticamente el archivo `aether.db` y los usuarios iniciales.*
+Los servicios estarán disponibles en:
+- `https://localhost` → Web Angular
+- `https://localhost/api` → Backend Spring Boot
+- `https://localhost:8069` → Panel de Odoo
 
-### 2. Frontend (Móvil)
+### App Móvil (Expo)
 
-Necesitas **Node.js** y la app **Expo Go** en tu móvil.
+El frontend móvil se levanta de forma independiente. Necesitas **Node.js** y la app **Expo Go** en tu móvil.
 
 ```bash
-cd aether-mobile
-# Instalar dependencias
+cd frontend/aether-mobile
 npm install
-# Arrancar el metro bundler
 npx expo start
-
 ```
 
-*Escanea el código QR con tu móvil (Android/iOS). Asegúrate de que el móvil y el PC están en la misma red WiFi.*
+Escanea el código QR con tu móvil. Asegúrate de que el móvil y el PC están en la **misma red WiFi**.
 
 > **Nota:** Si usas un móvil físico, edita `src/api/axios.ts` y cambia `localhost` por la IP local de tu PC (ej: `192.168.1.X`).
 
 ---
 
-## 👥 Autores
+## 📁 Estructura del Repositorio
 
-Este proyecto está siendo desarrollado con ❤️ y ☕ por:
-
-* **Romén Gilberto García Gómez** - [@PRORIX](https://github.com/PRORIX)
-* **Marcos Hernández Oramas** - [@mahoramas](https://github.com/mahoramas)
+```
+Radio-Aether-repository/
+├── backend/
+│   └── RadioAether/          # Spring Boot
+├── frontend/
+│   └── aether-mobile/        # React Native + Expo
+├── web/                      # Angular (v4)
+├── odoo/                     # Módulo Odoo personalizado (v4)
+├── nginx/                    # Configuración Nginx + SSL (v4)
+├── docker-compose.yml        # Orquestación (v4)
+├── PLANNING_V4.md            # Documento de planificación v4
+└── README.md
+```
 
 ---
 
-> *Proyecto Académico - IES Puerto de la Cruz - 2º DAM*
+## 🗺️ Historial de versiones
+
+| Versión | Nombre | Descripción |
+|---|---|---|
+| v1 | Genesis | Auth JWT, RBAC, cliente móvil base, SQLite |
+| v2 | — | Mejoras de base de datos y persistencia |
+| v3 | — | Geolocalización, Radio Browser API, favoritos, búsqueda, encuesta, perfil |
+| **v4** | **ORBIT** | **Web Angular, Odoo, Destacados, Docker, Nginx + SSL** |
+
+---
+
+## 👥 Autores
+
+Desarrollado con ❤️ y ☕ por:
+
+- **Romén Gilberto García Gómez** — [@PRORIX](https://github.com/PRORIX)
+- **Marcos Hernández Oramas** — [@mahoramas](https://github.com/mahoramas)
+
+---
+
+> *Proyecto Académico · IES Puerto de la Cruz · 2º DAM*

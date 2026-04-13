@@ -5,6 +5,7 @@
 .aider*
 *.anthropic
 *.openai
+PLANNING_V4.md
 
 # ── Variables de entorno y secretos ─────────────────────────────────────────
 .env
