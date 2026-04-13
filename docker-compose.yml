@@ -43,5 +43,36 @@ services:
     depends_on:
       - backend
 
+  postgres-odoo:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${ODOO_DB_NAME:-odoo}
+      POSTGRES_USER:     ${ODOO_DB_USER:-odoo}
+      POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+    volumes:
+      - postgres_odoo_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ODOO_DB_USER:-odoo} -d ${ODOO_DB_NAME:-odoo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  odoo:
+    image: odoo:17
+    restart: unless-stopped
+    ports:
+      - "8069:8069"
+    environment:
+      - HOST=postgres-odoo
+      - USER=${ODOO_DB_USER:-odoo}
+      - PASSWORD=${ODOO_DB_PASSWORD:-odoo}
+    volumes:
+      - ./odoo/addons:/mnt/extra-addons
+    depends_on:
+      postgres-odoo:
+        condition: service_healthy
+
 volumes:
   postgres_data:
+  postgres_odoo_data:
