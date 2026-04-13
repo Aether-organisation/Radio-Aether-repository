@@ -53,7 +53,24 @@ public class RadioController {
         if (q == null || q.isBlank() || q.length() < 2) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(radioService.searchStations(q.trim(), type));
+        
+        String formattedQuery = q.trim();
+        if ("country".equalsIgnoreCase(type)) {
+            String[] words = formattedQuery.toLowerCase().split("\\s+");
+            StringBuilder sb = new StringBuilder();
+            for (String word : words) {
+                if (!word.isEmpty()) {
+                    sb.append(Character.toUpperCase(word.charAt(0)));
+                    sb.append(word.substring(1));
+                    sb.append(" ");
+                }
+            }
+            formattedQuery = sb.toString().trim();
+        } else {
+            formattedQuery = formattedQuery.toLowerCase();
+        }
+
+        return ResponseEntity.ok(radioService.searchStations(formattedQuery, type));
     }
 
     @GetMapping("/foryou")

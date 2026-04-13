@@ -209,6 +209,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   }, []);
 
   const fetchNearest = async () => {
+    setNearestLoading(true);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') { setLocationDenied(true); setNearestLoading(false); return; }
@@ -225,8 +226,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       });
       setNearestStations(res.data);
       staggerCards(nearestAnims.slice(0, res.data.length));
-    } catch (e) {
-      console.error('Nearest fetch error:', e);
+    } catch (e: any) {
+      console.log('Nearest fetch handled error:', e.message || e);
+      if (e.message && e.message.toLowerCase().includes('location')) {
+        setLocationDenied(true);
+      } else {
+        setNearestStations([]);
+      }
     } finally {
       setNearestLoading(false);
     }
@@ -237,8 +243,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       const res = await api.get('/api/radio/foryou');
       setRecommended(res.data);
       staggerCards(forYouAnims.slice(0, res.data.length));
-    } catch (e) {
-      console.error('ForYou fetch error:', e);
+    } catch (e: any) {
+      console.log('ForYou fetch handled error:', e.message || e);
     } finally {
       setRecommendedLoading(false);
     }
@@ -316,7 +322,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
             </View>
           ) : nearestStations.length === 0 ? (
             <View style={styles.emptyBox}>
+              <Ionicons name="radio-outline" size={30} color="#9399B2" />
               <Text style={styles.emptyText}>No hay emisoras disponibles en tu zona</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={fetchNearest} activeOpacity={0.8}>
+                <Ionicons name="refresh" size={16} color="#fff" />
+                <Text style={styles.retryBtnText}>Reintentar</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <FlatList
@@ -564,5 +575,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  retryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: ACCENT,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 6,
+  },
+  retryBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

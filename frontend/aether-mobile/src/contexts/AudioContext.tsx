@@ -39,6 +39,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
   
   const soundRef = useRef<Audio.Sound | null>(null);
+  const playSeqIdRef = useRef<number>(0);
 
   useEffect(() => {
     const setupAudio = async () => {
@@ -72,12 +73,20 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   };
 
   const tryPlaySequence = async (stations: RadioStation[]) => {
+    const currentSeqId = Date.now();
+    playSeqIdRef.current = currentSeqId;
+
     await unload();
+    
+    if (playSeqIdRef.current !== currentSeqId) return; 
+
     setLoading(true);
     setError(null);
     let sequenceSuccess = false;
 
     for (const station of stations) {
+      if (playSeqIdRef.current !== currentSeqId) return; 
+
       try {
         setCurrentStation(station);
         const { sound } = await Audio.Sound.createAsync(
@@ -90,6 +99,12 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
           },
           { shouldPlay: true }
         );
+        
+        if (playSeqIdRef.current !== currentSeqId) {
+          sound.unloadAsync().catch(() => {});
+          return;
+        }
+
         soundRef.current = sound;
         setIsPlaying(true);
         sequenceSuccess = true;
@@ -111,11 +126,13 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       }
     }
 
-    if (!sequenceSuccess) {
-      setError("No se pudo conectar con ninguna emisora");
-      setCurrentStation(null);
+    if (playSeqIdRef.current === currentSeqId) {
+      if (!sequenceSuccess) {
+        setError("No se pudo conectar con ninguna emisora");
+        setCurrentStation(null);
+      }
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const playStation = async (station: RadioStation) => {
@@ -171,8 +188,8 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       await tryPlaySequence(res.data);
       setLocationStatus('Ubicación sintonizada');
     } catch (error: any) {
-      console.error('Load nearest error:', error);
-      const errorMsg = error.response?.data?.message || "No hay radios cercanas disponibles";
+      console.log('Load nearest handled error:', error.message || error);
+      const errorMsg = error.response?.data?.message || "Ubicación o red no disponible";
       setError(errorMsg);
       setLocationStatus('Error local');
       setLoading(false);
