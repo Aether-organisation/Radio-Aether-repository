@@ -22,6 +22,8 @@ services:
       context: ./backend/RadioAether
       dockerfile: Dockerfile
     restart: unless-stopped
+    ports:
+      - "8080:8080"
     env_file: .env
     environment:
       SPRING_DATASOURCE_URL:      ${SPRING_DATASOURCE_URL}
@@ -34,11 +36,11 @@ services:
 
   nginx:
     build:
-      context: ./nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./nginx/Dockerfile
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8082:80"
       - "443:443"
     depends_on:
       - backend

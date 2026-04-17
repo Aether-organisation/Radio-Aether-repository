@@ -54,6 +54,8 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/radio/featured").permitAll()
                         .requestMatchers("/api/featured/webhook").permitAll()
+                        .requestMatchers("/api/featured/request").permitAll()
+                        .requestMatchers("/api/featured/status/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

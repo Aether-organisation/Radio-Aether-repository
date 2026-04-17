@@ -9,13 +9,24 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
 public class FeaturedStationService {
 
     private final FeaturedStationRepository featuredStationRepository;
+    private final RestTemplate restTemplate;
+
+    @Value("${ODOO_URL:http://odoo:8069}")
+    private String odooUrl;
+
 
     public String requestFeaturedStation(final FeaturedStationRequestDTO requestDto) {
         final FeaturedStation station = FeaturedStation.builder()
@@ -29,8 +40,23 @@ public class FeaturedStationService {
                 .build();
 
         final FeaturedStation savedStation = featuredStationRepository.save(station);
+        
+        // Intentar notificar a Odoo de forma asíncrona o directa (aquí simulamos la llamada lógica)
+        try {
+            // En un entorno real llamaríamos a la API XML-RPC de Odoo aquí
+            // Por ahora, registramos el envío
+            System.out.println("Enviando petición a Odoo para la radio: " + station.getStationName());
+        } catch (Exception e) {
+            System.err.println("Error al contactar con Odoo: " + e.getMessage());
+        }
+
         return savedStation.getOdooRequestId();
     }
+
+    public Optional<FeaturedStation> getRequestStatus(String requestId) {
+        return featuredStationRepository.findByOdooRequestId(requestId);
+    }
+
 
     public void approveWebhook(final OdooWebhookDTO webhookDto) {
         if (webhookDto.isApproved()) {
