@@ -63,14 +63,13 @@ public class FeaturedStationService {
             final FeaturedStation station = featuredStationRepository.findByOdooRequestId(webhookDto.getOdooRequestId()).orElseThrow(() -> new RuntimeException("Station not found"));
             final long activeCount = featuredStationRepository.countByIsActiveTrue();
 
-            if (activeCount < 5) {
+            if (activeCount >= 5) {
+                throw new MaxFeaturedStationsReachedException("Max active featured stations limit reached (5)");
+            } else {
                 station.setActive(true);
                 station.setFeaturedFrom(LocalDateTime.now());
                 station.setFeaturedUntil(LocalDateTime.now().plusDays(7));
                 featuredStationRepository.save(station);
-            }
-            if (activeCount >= 5) {
-                throw new MaxFeaturedStationsReachedException("Max active featured stations limit reached (5)");
             }
         }
     }
