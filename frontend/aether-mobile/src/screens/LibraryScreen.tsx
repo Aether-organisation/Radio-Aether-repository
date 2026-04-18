@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useAudio } from '../contexts/AudioContext';
 import { RadioStation } from '../types';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { OfflineBanner } from '../components/OfflineBanner';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -123,6 +125,7 @@ const ListCard: React.FC<ListCardProps> = ({ icon, iconBg, title, description, c
 export const LibraryScreen = () => {
   const { favorites, toggleFavorite } = useFavorites();
   const { playStation, currentStation } = useAudio();
+  const { isOnline } = useNetworkStatus();
   const [currentView, setCurrentView] = useState<View_>('library');
 
   // Animations
@@ -239,9 +242,12 @@ export const LibraryScreen = () => {
   );
 
   return (
-    <Animated.View style={[styles.container, { opacity: masterFade }]}>
-      {currentView === 'library' ? renderLibrary() : renderFavorites()}
-    </Animated.View>
+    <View style={styles.rootContainer}>
+      <OfflineBanner isOnline={isOnline} />
+      <Animated.View style={[styles.container, { opacity: masterFade }]}>
+        {currentView === 'library' ? renderLibrary() : renderFavorites()}
+      </Animated.View>
+    </View>
   );
 };
 
@@ -255,6 +261,10 @@ const TEXT    = '#FFFFFF';
 const SUBTEXT = '#9399B2';
 
 const styles = StyleSheet.create({
+  rootContainer: {
+    flex: 1,
+    backgroundColor: BG,
+  },
   container: {
     flex: 1,
     backgroundColor: BG,

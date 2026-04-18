@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, TextInput, FlatList, TouchableOpacity,
   StyleSheet, Animated, Image, Easing, ActivityIndicator,
-  Keyboard,
+  Keyboard, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { RadioStation } from '../types';
 import api from '../api/axios';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { OfflineBanner } from '../components/OfflineBanner';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -144,6 +146,7 @@ const SkeletonRow: React.FC<{ pulse: Animated.Value }> = ({ pulse }) => {
 
 export const SearchScreen = () => {
   const { playStation, currentStation } = useAudio();
+  const { isOnline } = useNetworkStatus();
 
   const [query, setQuery]         = useState('');
   const [filter, setFilter]       = useState<FilterType>('name');
@@ -199,6 +202,10 @@ export const SearchScreen = () => {
   }, [query, filter]);
 
   const doSearch = async (q: string, type: FilterType) => {
+    if (!isOnline) {
+      Alert.alert('Sin conexión', 'La búsqueda no está disponible sin conexión a Internet.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -304,7 +311,9 @@ export const SearchScreen = () => {
 
   // ────────────────────────────────────────────────────────────────────────────
   return (
-    <Animated.View style={[styles.container, { opacity: masterFade }]}>
+    <View style={styles.rootContainer}>
+      <OfflineBanner isOnline={isOnline} />
+      <Animated.View style={[styles.container, { opacity: masterFade }]}>
 
       {/* Header */}
       <Animated.View style={[styles.header, { transform: [{ translateY: headerSlide }] }]}>
@@ -358,6 +367,7 @@ export const SearchScreen = () => {
       {renderContent()}
 
     </Animated.View>
+    </View>
   );
 };
 
@@ -371,6 +381,10 @@ const TEXT    = '#FFFFFF';
 const SUBTEXT = '#9399B2';
 
 const styles = StyleSheet.create({
+  rootContainer: {
+    flex: 1,
+    backgroundColor: BG,
+  },
   container: {
     flex: 1,
     backgroundColor: BG,

@@ -12,6 +12,9 @@ import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { RadioStation } from '../types';
 import api from '../api/axios';
+import { saveHomeStations, getHomeStations } from '../db/database';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { OfflineBanner } from '../components/OfflineBanner';
 
 const CARD_WIDTH    = 160;
 const CARD_HEIGHT   = 200;
@@ -163,6 +166,7 @@ const SectionHeader: React.FC<{ icon: string; title: string }> = ({ icon, title 
 export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const navigation = useNavigation<any>();
   const { playStation, currentStation, unload } = useAudio();
+  const { isOnline } = useNetworkStatus();
 
   const [userName, setUserName]                     = useState('');
   const [featuredStations, setFeaturedStations]     = useState<RadioStation[]>([]);
@@ -251,12 +255,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       });
       setNearestStations(res.data);
       staggerCards(nearestAnims.slice(0, res.data.length));
+      saveHomeStations(res.data, 'nearest').catch(() => {});
     } catch (e: any) {
       console.log('Nearest fetch handled error:', e.message || e);
       if (e.message && e.message.toLowerCase().includes('location')) {
         setLocationDenied(true);
       } else {
-        setNearestStations([]);
+        const cached = await getHomeStations('nearest').catch(() => []);
+        setNearestStations(cached);
+        staggerCards(nearestAnims.slice(0, cached.length));
       }
     } finally {
       setNearestLoading(false);
@@ -268,8 +275,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       const res = await api.get('/api/radio/foryou');
       setRecommended(res.data);
       staggerCards(forYouAnims.slice(0, res.data.length));
+      saveHomeStations(res.data, 'foryou').catch(() => {});
     } catch (e: any) {
       console.log('ForYou fetch handled error:', e.message || e);
+      const cached = await getHomeStations('foryou').catch(() => []);
+      setRecommended(cached);
+      staggerCards(forYouAnims.slice(0, cached.length));
     } finally {
       setRecommendedLoading(false);
     }
@@ -318,10 +329,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
   // ────────────────────────────────────────────────────────────────────────────
   return (
-    <Animated.ScrollView
-      style={[styles.container, { opacity: masterFade }]}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
+    <View style={styles.rootContainer}>
+      <OfflineBanner isOnline={isOnline} />
+      <Animated.ScrollView
+        style={[styles.container, { opacity: masterFade }]}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
     >
       {/* Header */}
       <Animated.View style={[styles.header, { transform: [{ translateY: headerSlide }] }]}>
@@ -409,6 +422,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
           )}
       </Animated.View>
     </Animated.ScrollView>
+    </View>
   );
 };
 
@@ -423,6 +437,10 @@ const TEXT       = '#FFFFFF';
 const SUBTEXT    = '#9399B2';
 
 const styles = StyleSheet.create({
+  rootContainer: {
+    flex: 1,
+    backgroundColor: BG,
+  },
   container: {
     flex: 1,
     backgroundColor: BG,

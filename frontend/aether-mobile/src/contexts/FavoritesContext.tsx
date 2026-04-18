@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import api from '../api/axios';
 import { RadioStation } from '../types';
+import { initDatabase, getFavorites, saveFavorites } from '../db/database';
 
 interface FavoritesContextType {
   favorites: RadioStation[];
@@ -20,18 +21,20 @@ export const useFavorites = () => {
 export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [favorites, setFavorites] = useState<RadioStation[]>([]);
 
+  useEffect(() => {
+    initDatabase().then(() => loadFavorites());
+  }, []);
+
   const loadFavorites = useCallback(async () => {
     try {
       const res = await api.get('/api/favorites');
       setFavorites(res.data);
-    } catch (e) {
-      console.error('Load favorites error:', e);
+      saveFavorites(res.data).catch(() => {});
+    } catch {
+      const cached = await getFavorites().catch(() => []);
+      setFavorites(cached);
     }
   }, []);
-
-  useEffect(() => {
-    loadFavorites();
-  }, [loadFavorites]);
 
   const isFavorite = useCallback(
     (stationId: string) => favorites.some(f => f.id === stationId),
@@ -60,6 +63,10 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
           genre: station.genre,
         });
       }
+      const updated = alreadyFav
+        ? favorites.filter(f => f.id !== station.id)
+        : [...favorites, station];
+      saveFavorites(updated).catch(() => {});
     } catch (e) {
       // Rollback on error
       console.error('Toggle favorite error:', e);
