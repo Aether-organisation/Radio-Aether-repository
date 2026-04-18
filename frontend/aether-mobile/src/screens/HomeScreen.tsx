@@ -46,9 +46,10 @@ interface StationCardProps {
   isActive: boolean;
   onPress: (station: RadioStation) => void;
   enterAnim: Animated.Value;
+  featured?: boolean;
 }
 
-const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, enterAnim }) => {
+const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, enterAnim, featured }) => {
   const [imgError, setImgError] = useState(false);
   const playScale  = useRef(new Animated.Value(1)).current;
   const heartScale = useRef(new Animated.Value(1)).current;
@@ -77,7 +78,7 @@ const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, e
   const hasLogo    = !!station.logoUrl && !imgError;
 
   return (
-    <Animated.View style={[styles.card, { opacity, transform: [{ translateY }] }]}>
+    <Animated.View style={[styles.card, featured && styles.cardFeatured, { opacity, transform: [{ translateY }] }]}>
       {/* Logo */}
       <View style={styles.cardImageContainer}>
         {hasLogo ? (
@@ -92,6 +93,12 @@ const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, e
             <Text style={styles.cardImageFallbackText}>
               {station.name?.charAt(0)?.toUpperCase() ?? '🎵'}
             </Text>
+          </View>
+        )}
+
+        {featured && (
+          <View style={styles.featuredBadge}>
+            <Text style={styles.featuredBadgeText}>⭐</Text>
           </View>
         )}
 
@@ -158,8 +165,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const { playStation, currentStation, unload } = useAudio();
 
   const [userName, setUserName]                     = useState('');
+  const [featuredStations, setFeaturedStations]     = useState<RadioStation[]>([]);
   const [nearestStations, setNearestStations]       = useState<RadioStation[]>([]);
   const [recommendedStations, setRecommended]       = useState<RadioStation[]>([]);
+  const [featuredLoading, setFeaturedLoading]       = useState(true);
   const [nearestLoading, setNearestLoading]         = useState(true);
   const [recommendedLoading, setRecommendedLoading] = useState(true);
   const [locationDenied, setLocationDenied]         = useState(false);
@@ -167,12 +176,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   // ── Animations ──────────────────────────────────────────────────────────────
   const masterFade  = useRef(new Animated.Value(0)).current;
   const headerSlide = useRef(new Animated.Value(-16)).current;
+  const sec0Slide   = useRef(new Animated.Value(36)).current;
   const sec1Slide   = useRef(new Animated.Value(36)).current;
   const sec2Slide   = useRef(new Animated.Value(36)).current;
   const pulse       = useRef(new Animated.Value(0)).current;
 
-  const nearestAnims = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
-  const forYouAnims  = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
+  const featuredAnims = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
+  const nearestAnims  = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
+  const forYouAnims   = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
 
   // Skeleton shimmer loop
   useEffect(() => {
@@ -189,8 +200,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     Animated.parallel([
       Animated.timing(masterFade,  { toValue: 1, duration: 550, easing: Easing.out(Easing.quad), useNativeDriver: true }),
       Animated.spring(headerSlide, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
-      Animated.sequence([Animated.delay(130), Animated.spring(sec1Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
-      Animated.sequence([Animated.delay(260), Animated.spring(sec2Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
+      Animated.sequence([Animated.delay(65),  Animated.spring(sec0Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
+      Animated.sequence([Animated.delay(195), Animated.spring(sec1Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
+      Animated.sequence([Animated.delay(325), Animated.spring(sec2Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
     ]).start();
   }, []);
 
@@ -204,9 +216,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   // ── Data fetching ───────────────────────────────────────────────────────────
   useEffect(() => {
     SecureStore.getItemAsync('user_name').then(n => { if (n) setUserName(n); });
+    fetchFeatured();
     fetchNearest();
     fetchForYou();
   }, []);
+
+  const fetchFeatured = async () => {
+    try {
+      const res = await api.get('/api/radio/featured');
+      setFeaturedStations(res.data);
+      staggerCards(featuredAnims.slice(0, res.data.length));
+    } catch (e: any) {
+      console.log('Featured fetch handled error:', e.message || e);
+    } finally {
+      setFeaturedLoading(false);
+    }
+  };
 
   const fetchNearest = async () => {
     setNearestLoading(true);
@@ -271,13 +296,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
   const renderStation = (
     { item, index }: { item: RadioStation; index: number },
-    anims: Animated.Value[]
+    anims: Animated.Value[],
+    isFeatured?: boolean
   ) => (
     <StationCard
       station={item}
       isActive={currentStation?.id === item.id}
       onPress={playStation}
       enterAnim={anims[index] ?? new Animated.Value(1)}
+      featured={isFeatured}
     />
   );
 
@@ -309,6 +336,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
           <Ionicons name="log-out-outline" size={20} color="#9399B2" />
         </TouchableOpacity>
       </Animated.View>
+
+      {/* Emisoras Destacadas — only shown when there is data */}
+      {(featuredLoading || featuredStations.length > 0) && (
+        <Animated.View style={[styles.section, { transform: [{ translateY: sec0Slide }] }]}>
+          <SectionHeader icon="⭐" title="Emisoras Destacadas" />
+          {featuredLoading ? renderSkeletons() : (
+            <FlatList
+              data={featuredStations}
+              keyExtractor={item => item.id}
+              renderItem={info => renderStation(info, featuredAnims, true)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              getItemLayout={(_, i) => ({ length: CARD_WIDTH + 12, offset: (CARD_WIDTH + 12) * i, index: i })}
+            />
+          )}
+        </Animated.View>
+      )}
 
       {/* Emisoras Cercanas */}
       <Animated.View style={[styles.section, { transform: [{ translateY: sec1Slide }] }]}>
@@ -590,5 +635,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 13,
     fontWeight: '600',
+  },
+
+  // Featured card overrides
+  cardFeatured: {
+    borderColor: '#f59e0b',
+    borderWidth: 1.5,
+  },
+  featuredBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 8,
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featuredBadgeText: {
+    fontSize: 12,
   },
 });

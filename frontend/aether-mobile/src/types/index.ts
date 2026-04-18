@@ -8,4 +8,5 @@ export interface RadioStation {
   streamUrl: string;
   logoUrl: string;
   genre: string;
+  featured?: boolean;
 }
