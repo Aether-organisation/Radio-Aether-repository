@@ -21,6 +21,11 @@ const GENRES = [
   { label: 'Indie',      emoji: '🌙' },
   { label: 'Folk',       emoji: '🪕' },
   { label: 'R&B',        emoji: '💜' },
+  { label: 'Reggaeton', emoji: '🔥' },
+  { label: 'Trap',      emoji: '🎤' },
+  { label: 'Urbano',    emoji: '🏙️' },
+  { label: 'Dembow',    emoji: '🥁' },
+  { label: 'Afrobeats', emoji: '🌍' },
   { label: 'Blues',      emoji: '🎺' },
   { label: 'Techno',     emoji: '🔊' },
 ];

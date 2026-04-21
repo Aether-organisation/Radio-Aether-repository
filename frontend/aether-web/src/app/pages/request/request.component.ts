@@ -105,6 +105,11 @@ interface RequestForm {
                   <option>Clásica</option>
                   <option>Electrónica</option>
                   <option>Reggaeton</option>
+                  <option>Trap</option>
+                  <option>Urbano</option>
+                  <option>Dembow</option>
+                  <option>Afrobeats</option>
+                  <option>R&B</option>
                   <option>Hip-Hop</option>
                   <option>Flamenco</option>
                   <option>Noticias y Deportes</option>
