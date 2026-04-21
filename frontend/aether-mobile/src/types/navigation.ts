@@ -14,6 +14,7 @@ export type RootTabParamList = {
   HomeTab: undefined;
   SearchTab: undefined;
   LibraryTab: undefined;
+  AiTab: undefined;
   ProfileTab: undefined;
   NowPlayingTab: undefined;
 };

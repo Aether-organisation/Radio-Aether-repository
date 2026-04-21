@@ -14,6 +14,7 @@ import { SearchScreen }  from './src/screens/SearchScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { SurveyScreen }  from './src/screens/SurveyScreen';
+import { AiScreen }      from './src/screens/AiScreen';
 import { MiniPlayer }    from './src/components/MiniPlayer';
 
 import { RootStackParamList, RootTabParamList } from './src/types/navigation';
@@ -44,6 +45,7 @@ function MainTabs() {
               HomeTab:       { active: 'home',           inactive: 'home-outline'          },
               SearchTab:     { active: 'search',         inactive: 'search-outline'         },
               LibraryTab:    { active: 'heart',          inactive: 'heart-outline'          },
+              AiTab:         { active: 'sparkles',       inactive: 'sparkles-outline'       },
               ProfileTab:    { active: 'person',         inactive: 'person-outline'         },
               NowPlayingTab: { active: 'musical-notes',  inactive: 'musical-notes-outline'  },
             };
@@ -52,11 +54,12 @@ function MainTabs() {
           },
         })}
       >
-        <Tab.Screen name="HomeTab"       component={HomeScreen}   options={{ title: 'Inicio'      }} />
-        <Tab.Screen name="SearchTab"     component={SearchScreen} options={{ title: 'Buscar'      }} />
-        <Tab.Screen name="LibraryTab"    component={LibraryScreen} options={{ title: 'Biblioteca' }} />
-        <Tab.Screen name="NowPlayingTab" component={PlayerScreen} options={{ title: 'Reproduciendo' }} />
-        <Tab.Screen name="ProfileTab"    component={ProfileScreen} options={{ title: 'Perfil'     }} />
+        <Tab.Screen name="HomeTab"       component={HomeScreen}    options={{ title: 'Inicio'      }} />
+        <Tab.Screen name="SearchTab"     component={SearchScreen}  options={{ title: 'Buscar'      }} />
+        <Tab.Screen name="LibraryTab"    component={LibraryScreen} options={{ title: 'Biblioteca'  }} />
+        <Tab.Screen name="AiTab"         component={AiScreen}      options={{ title: 'IA'          }} />
+        <Tab.Screen name="NowPlayingTab" component={PlayerScreen}  options={{ title: 'Reproduciendo' }} />
+        <Tab.Screen name="ProfileTab"    component={ProfileScreen} options={{ title: 'Perfil'      }} />
       </Tab.Navigator>
       <MiniPlayer />
     </View>

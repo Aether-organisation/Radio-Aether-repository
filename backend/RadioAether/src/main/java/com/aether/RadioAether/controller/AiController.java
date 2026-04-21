@@ -3,12 +3,17 @@ package com.aether.RadioAether.controller;
 import com.aether.RadioAether.model.dto.response.MoodPlaylist;
 import com.aether.RadioAether.service.AiService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for AI-powered playlist generation.
+ *
+ * POST /api/ai/mood        — Free text → Mood Tuner playlist
+ * POST /api/ai/contextual  — Coordinates + time → Context-aware playlist
+ */
 @RestController
 @RequiredArgsConstructor
 public class AiController {
@@ -24,7 +29,9 @@ public class AiController {
     }
 
     @PostMapping("/api/ai/contextual")
-    public ResponseEntity<String> getContextualPlaylist(@RequestBody ContextualRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("Not implemented yet");
+    public ResponseEntity<MoodPlaylist> getContextualPlaylist(@RequestBody ContextualRequest request) {
+        return ResponseEntity.ok(
+                aiService.getContextualPlaylist(request.latitude(), request.longitude(), request.localTime())
+        );
     }
 }
