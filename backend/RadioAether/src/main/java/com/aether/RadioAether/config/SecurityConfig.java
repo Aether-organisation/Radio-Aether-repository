@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/featured/webhook").permitAll()
                         .requestMatchers("/api/featured/request").permitAll()
                         .requestMatchers("/api/featured/status/**").permitAll()
+                        .requestMatchers("/api/ai/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

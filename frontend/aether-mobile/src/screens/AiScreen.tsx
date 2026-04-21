@@ -81,7 +81,7 @@ const StationCard: React.FC<StationCardProps> = ({ station, index, enterAnim }) 
   const [imgErr, setImgErr] = useState(false);
   const isActive = currentStation?.id === station.id;
 
-  const opacity    = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+  const opacity = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
   const translateY = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] });
 
   const handlePlay = () => {
@@ -136,20 +136,20 @@ const StationCard: React.FC<StationCardProps> = ({ station, index, enterAnim }) 
 
 
 export const AiScreen: React.FC = () => {
-  const [moodText, setMoodText]           = useState('');
-  const [loading, setLoading]             = useState(false);
+  const [moodText, setMoodText] = useState('');
+  const [loading, setLoading] = useState(false);
   const [contextualLoading, setCtxLoading] = useState(false);
-  const [playlist, setPlaylist]           = useState<MoodPlaylist | null>(null);
-  const [error, setError]                 = useState<string | null>(null);
+  const [playlist, setPlaylist] = useState<MoodPlaylist | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const masterFade  = useRef(new Animated.Value(0)).current;
+  const masterFade = useRef(new Animated.Value(0)).current;
   const headerSlide = useRef(new Animated.Value(-14)).current;
-  const cardAnims   = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
-  const resultFade  = useRef(new Animated.Value(0)).current;
+  const cardAnims = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
+  const resultFade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(masterFade,  { toValue: 1, duration: 480, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.timing(masterFade, { toValue: 1, duration: 480, easing: Easing.out(Easing.quad), useNativeDriver: true }),
       Animated.spring(headerSlide, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
   }, []);
@@ -213,6 +213,7 @@ export const AiScreen: React.FC = () => {
       setPlaylist(res.data);
       staggerCards(res.data.stations?.length ?? 0);
     } catch (e: any) {
+      console.error('[Contextual] Error:', e?.response?.status, e?.response?.data, e?.message);
       setError('No se pudo obtener la playlist contextual. Inténtalo de nuevo.');
     } finally {
       setCtxLoading(false);
@@ -352,11 +353,11 @@ export const AiScreen: React.FC = () => {
 };
 
 
-const ACCENT  = '#646cff';
-const BG      = '#0E0E1A';
+const ACCENT = '#646cff';
+const BG = '#0E0E1A';
 const SURFACE = '#16162A';
-const BORDER  = '#2D2D4A';
-const TEXT    = '#FFFFFF';
+const BORDER = '#2D2D4A';
+const TEXT = '#FFFFFF';
 const SUBTEXT = '#9399B2';
 
 const styles = StyleSheet.create({
