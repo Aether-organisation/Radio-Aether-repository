@@ -1,5 +1,6 @@
 package com.aether.RadioAether.controller;
 
+import com.aether.RadioAether.model.dto.response.MoodPlaylist;
 import com.aether.RadioAether.service.AiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,8 +19,8 @@ public class AiController {
     private record ContextualRequest(double latitude, double longitude, String localTime) {}
 
     @PostMapping("/api/ai/mood")
-    public ResponseEntity<String> getMoodPlaylist(@RequestBody MoodRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("Not implemented yet");
+    public ResponseEntity<MoodPlaylist> getMoodPlaylist(@RequestBody MoodRequest request) {
+        return ResponseEntity.ok(aiService.getMoodPlaylist(request.text()));
     }
 
     @PostMapping("/api/ai/contextual")
