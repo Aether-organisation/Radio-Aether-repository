@@ -13,7 +13,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Aether necesita tu ubicación para sintonizar música según tu clima y entorno."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +32,13 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Aether necesita tu ubicación para sintonizar música según tu clima y entorno."
+        }
+      ]
     ]
   }
 }

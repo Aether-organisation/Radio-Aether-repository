@@ -154,10 +154,26 @@ const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, e
 
 // ─── SectionHeader ───────────────────────────────────────────────────────────
 
-const SectionHeader: React.FC<{ icon: string; title: string }> = ({ icon, title }) => (
+const SectionHeader: React.FC<{ 
+  icon: string; 
+  title: string; 
+  onRefresh?: () => void;
+  isLoading?: boolean;
+}> = ({ icon, title, onRefresh, isLoading }) => (
   <View style={styles.sectionHeader}>
-    <Text style={styles.sectionIcon}>{icon}</Text>
-    <Text style={styles.sectionTitle}>{title}</Text>
+    <View style={styles.sectionHeaderTitle}>
+      <Text style={styles.sectionIcon}>{icon}</Text>
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+    {onRefresh && (
+      <TouchableOpacity onPress={onRefresh} disabled={isLoading} style={styles.refreshBtn}>
+        <Ionicons 
+          name="refresh-outline" 
+          size={18} 
+          color={isLoading ? SUBTEXT : ACCENT} 
+        />
+      </TouchableOpacity>
+    )}
   </View>
 );
 
@@ -240,19 +256,51 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const fetchNearest = async () => {
     setNearestLoading(true);
     try {
+      // ── STEP 1: Check permission status ──────────────────────────────────────
+      console.log('[GPS-1] Checking location permission...');
       const { status } = await Location.requestForegroundPermissionsAsync();
+      console.log('[GPS-1] Permission status:', status);
       if (status !== 'granted') { setLocationDenied(true); setNearestLoading(false); return; }
 
-      let location;
+      let location: Location.LocationObject | null = null;
+
+      // ── STEP 2: Try last known position ──────────────────────────────────────
+      console.log('[GPS-2] Trying getLastKnownPositionAsync...');
       try {
-        location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      } catch {
-        location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
+        location = await Location.getLastKnownPositionAsync({ maxAge: 300_000 });
+        console.log('[GPS-2] Result:', location ? `Lat ${location.coords.latitude}, Lon ${location.coords.longitude}` : 'null (no cached position)');
+      } catch (e: any) {
+        console.log('[GPS-2] Error:', e.message);
       }
-      const res = await api.post('/api/radio/nearest', {
-        latitude:  location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
+
+      // ── STEP 3: Try getCurrentPosition (Balanced) ─────────────────────────
+      if (!location) {
+        console.log('[GPS-3] Trying getCurrentPositionAsync (Balanced)...');
+        try {
+          location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          console.log('[GPS-3] OK:', location.coords.latitude, location.coords.longitude);
+        } catch (e: any) {
+          console.log('[GPS-3] Error:', e.message);
+        }
+      }
+
+      // ── STEP 4: Try getCurrentPosition (Lowest) ───────────────────────────
+      if (!location) {
+        console.log('[GPS-4] Trying getCurrentPositionAsync (Lowest)...');
+        try {
+          location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
+          console.log('[GPS-4] OK:', location.coords.latitude, location.coords.longitude);
+        } catch (gpsErr: any) {
+          console.log('[GPS-4] Final error:', gpsErr.message);
+          throw new Error(`location: ${gpsErr.message}`);
+        }
+      }
+
+      // ── STEP 5: Call API ──────────────────────────────────────────────────
+      const { latitude, longitude } = location!.coords;
+      console.log(`[GPS-OK] Final coords → Lat: ${latitude}, Lon: ${longitude}`);
+
+      const res = await api.post('/api/radio/nearest', { latitude, longitude });
       setNearestStations(res.data);
       staggerCards(nearestAnims.slice(0, res.data.length));
       saveHomeStations(res.data, 'nearest').catch(() => {});
@@ -370,7 +418,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
       {/* Emisoras Cercanas */}
       <Animated.View style={[styles.section, { transform: [{ translateY: sec1Slide }] }]}>
-        <SectionHeader icon="📍" title="Emisoras Cercanas" />
+        <SectionHeader 
+          icon="📍" 
+          title="Emisoras Cercanas" 
+          onRefresh={fetchNearest} 
+          isLoading={nearestLoading}
+        />
 
         {nearestLoading ? renderSkeletons()
           : locationDenied ? (
@@ -494,9 +547,21 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     marginBottom: 14,
+  },
+  sectionHeaderTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
+  },
+  refreshBtn: {
+    padding: 4,
+    borderRadius: 8,
+    backgroundColor: SURFACE,
+    borderWidth: 1,
+    borderColor: BORDER,
   },
   sectionIcon: {
     fontSize: 18,

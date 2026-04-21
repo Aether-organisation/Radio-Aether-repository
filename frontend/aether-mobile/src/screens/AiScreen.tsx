@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Image, Animated, Easing, Keyboard,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { useAudio } from '../contexts/AudioContext';
 import api from '../api/axios';
 
@@ -135,10 +136,11 @@ const StationCard: React.FC<StationCardProps> = ({ station, index, enterAnim }) 
 
 
 export const AiScreen: React.FC = () => {
-  const [moodText, setMoodText]       = useState('');
-  const [loading, setLoading]         = useState(false);
-  const [playlist, setPlaylist]       = useState<MoodPlaylist | null>(null);
-  const [error, setError]             = useState<string | null>(null);
+  const [moodText, setMoodText]           = useState('');
+  const [loading, setLoading]             = useState(false);
+  const [contextualLoading, setCtxLoading] = useState(false);
+  const [playlist, setPlaylist]           = useState<MoodPlaylist | null>(null);
+  const [error, setError]                 = useState<string | null>(null);
 
   const masterFade  = useRef(new Animated.Value(0)).current;
   const headerSlide = useRef(new Animated.Value(-14)).current;
@@ -182,6 +184,38 @@ export const AiScreen: React.FC = () => {
       setError('No se pudo generar la playlist. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleContextual = async () => {
+    setCtxLoading(true);
+    setError(null);
+    setPlaylist(null);
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permiso de ubicación requerido',
+        'Activa la ubicación para que la IA pueda sintonizar música según tu momento actual.',
+      );
+      setCtxLoading(false);
+      return;
+    }
+
+    try {
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const { latitude, longitude } = loc.coords;
+
+      const now = new Date();
+      const localTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      const res = await api.post<MoodPlaylist>('/api/ai/contextual', { latitude, longitude, localTime });
+      setPlaylist(res.data);
+      staggerCards(res.data.stations?.length ?? 0);
+    } catch (e: any) {
+      setError('No se pudo obtener la playlist contextual. Inténtalo de nuevo.');
+    } finally {
+      setCtxLoading(false);
     }
   };
 
@@ -239,7 +273,7 @@ export const AiScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* ── Contextual section (button only for now) ── */}
+          {/* ── Contextual section ── */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionIcon}>🌍</Text>
@@ -249,16 +283,24 @@ export const AiScreen: React.FC = () => {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.contextBtn} activeOpacity={0.8} disabled>
-              <Ionicons name="location-outline" size={18} color={ACCENT} />
+            <TouchableOpacity
+              style={[styles.contextBtn, contextualLoading && styles.submitBtnDisabled]}
+              onPress={() => {
+                console.log('Botón contextual pulsado');
+                handleContextual();
+              }}
+              disabled={contextualLoading || loading}
+              activeOpacity={0.6}
+            >
+              <Ionicons name="location" size={18} color={ACCENT} />
               <Text style={styles.contextBtnText}>Sintonizar ahora</Text>
-              <View style={styles.comingSoonBadge}>
-                <Text style={styles.comingSoonText}>Próximamente</Text>
-              </View>
+              {contextualLoading && (
+                <ThinkingDots />
+              )}
             </TouchableOpacity>
           </View>
 
-          {/* ── Thinking animation ── */}
+          {/* ── Thinking animation (mood) ── */}
           {loading && (
             <View style={styles.thinkingContainer}>
               <ThinkingDots />
@@ -429,7 +471,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(100,108,255,0.08)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(100,108,255,0.25)',
+    borderColor: 'rgba(100,108,255,0.30)',
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
