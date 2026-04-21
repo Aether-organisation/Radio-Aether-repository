@@ -39,7 +39,9 @@ public class FeaturedStationService {
     public String requestFeaturedStation(final FeaturedStationRequestDTO requestDto) {
         final String requestId = UUID.randomUUID().toString();
         final FeaturedStation station = FeaturedStation.builder()
-                .stationId(requestDto.getStationId())
+                .stationId(requestDto.getStationId() != null && !requestDto.getStationId().isEmpty()
+                        ? requestDto.getStationId()
+                        : UUID.randomUUID().toString())
                 .stationName(requestDto.getStationName())
                 .streamUrl(requestDto.getStreamUrl())
                 .logoUrl(requestDto.getLogoUrl())

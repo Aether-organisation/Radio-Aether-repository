@@ -34,11 +34,11 @@ public class FeaturedStation {
     @JsonProperty("name")
     private String stationName;
 
-    @Column(name = "stream_url")
+    @Column(name = "stream_url", length = 2048)
     @JsonProperty("streamUrl")
     private String streamUrl;
 
-    @Column(name = "logo_url")
+    @Column(name = "logo_url", length = 2048)
     @JsonProperty("logoUrl")
     private String logoUrl;
 
