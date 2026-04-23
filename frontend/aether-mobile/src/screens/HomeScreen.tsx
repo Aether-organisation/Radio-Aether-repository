@@ -15,18 +15,19 @@ import api from '../api/axios';
 import { saveHomeStations, getHomeStations } from '../db/database';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { OfflineBanner } from '../components/OfflineBanner';
+import { StationCard } from '../components/StationCard';
 
-const CARD_WIDTH    = 160;
-const CARD_HEIGHT   = 200;
+const CARD_WIDTH = 160;
+const CARD_HEIGHT = 200;
 const SKELETON_COUNT = 4;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const getGreeting = () => {
   const h = new Date().getHours();
-  if (h < 12) return { text: 'Buenos días',   emoji: '☀️' };
+  if (h < 12) return { text: 'Buenos días', emoji: '☀️' };
   if (h < 19) return { text: 'Buenas tardes', emoji: '🌤️' };
-  return       { text: 'Buenas noches',       emoji: '🌙' };
+  return { text: 'Buenas noches', emoji: '🌙' };
 };
 
 // ─── Skeleton card ────────────────────────────────────────────────────────────
@@ -42,121 +43,11 @@ const SkeletonCard: React.FC<{ pulse: Animated.Value }> = ({ pulse }) => {
   );
 };
 
-// ─── Station card ─────────────────────────────────────────────────────────────
-
-interface StationCardProps {
-  station: RadioStation;
-  isActive: boolean;
-  onPress: (station: RadioStation) => void;
-  enterAnim: Animated.Value;
-  featured?: boolean;
-}
-
-const StationCard: React.FC<StationCardProps> = ({ station, isActive, onPress, enterAnim, featured }) => {
-  const [imgError, setImgError] = useState(false);
-  const playScale  = useRef(new Animated.Value(1)).current;
-  const heartScale = useRef(new Animated.Value(1)).current;
-  const { isFavorite, toggleFavorite } = useFavorites();
-  const fav = isFavorite(station.id);
-
-  const handlePress = () => {
-    Animated.sequence([
-      Animated.spring(playScale, { toValue: 0.88, tension: 150, friction: 5, useNativeDriver: true }),
-      Animated.spring(playScale, { toValue: 1,    tension: 80,  friction: 6, useNativeDriver: true }),
-    ]).start();
-    onPress(station);
-  };
-
-  const handleFavorite = () => {
-    Animated.sequence([
-      Animated.spring(heartScale, { toValue: 0.7, tension: 200, friction: 5, useNativeDriver: true }),
-      Animated.spring(heartScale, { toValue: 1.3, tension: 100, friction: 4, useNativeDriver: true }),
-      Animated.spring(heartScale, { toValue: 1,   tension: 80,  friction: 6, useNativeDriver: true }),
-    ]).start();
-    toggleFavorite(station);
-  };
-
-  const translateY = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] });
-  const opacity    = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [0,  1] });
-  const hasLogo    = !!station.logoUrl && !imgError;
-
-  return (
-    <Animated.View style={[styles.card, featured && styles.cardFeatured, { opacity, transform: [{ translateY }] }]}>
-      {/* Logo */}
-      <View style={styles.cardImageContainer}>
-        {hasLogo ? (
-          <Image
-            source={{ uri: station.logoUrl }}
-            style={styles.cardImage}
-            onError={() => setImgError(true)}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.cardImage, styles.cardImageFallback]}>
-            <Text style={styles.cardImageFallbackText}>
-              {station.name?.charAt(0)?.toUpperCase() ?? '🎵'}
-            </Text>
-          </View>
-        )}
-
-        {featured && (
-          <View style={styles.featuredBadge}>
-            <Text style={styles.featuredBadgeText}>⭐</Text>
-          </View>
-        )}
-
-        {isActive && (
-          <View style={styles.playingBadge}>
-            <Ionicons name="musical-notes" size={11} color="#fff" />
-          </View>
-        )}
-
-        {/* Heart button */}
-        <Animated.View style={[styles.heartWrap, { transform: [{ scale: heartScale }] }]}>
-          <TouchableOpacity onPress={handleFavorite} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons
-              name={fav ? 'heart' : 'heart-outline'}
-              size={18}
-              color={fav ? '#ff4d7d' : 'rgba(255,255,255,0.75)'}
-            />
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
-
-      {/* Info */}
-      <View style={styles.cardBody}>
-        <Text style={styles.cardName} numberOfLines={2}>{station.name}</Text>
-        {!!station.genre && (
-          <Text style={styles.cardGenre} numberOfLines={1}>
-            · {station.genre.split(',')[0].trim()}
-          </Text>
-        )}
-      </View>
-
-      {/* Play button */}
-      <Animated.View style={[styles.playBtnWrap, { transform: [{ scale: playScale }] }]}>
-        <TouchableOpacity
-          style={[styles.playBtn, isActive && styles.playBtnActive]}
-          onPress={handlePress}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name={isActive ? 'pause' : 'play'}
-            size={14}
-            color="#fff"
-            style={{ marginLeft: isActive ? 0 : 2 }}
-          />
-        </TouchableOpacity>
-      </Animated.View>
-    </Animated.View>
-  );
-};
-
 // ─── SectionHeader ───────────────────────────────────────────────────────────
 
-const SectionHeader: React.FC<{ 
-  icon: string; 
-  title: string; 
+const SectionHeader: React.FC<{
+  icon: string;
+  title: string;
   onRefresh?: () => void;
   isLoading?: boolean;
 }> = ({ icon, title, onRefresh, isLoading }) => (
@@ -167,10 +58,10 @@ const SectionHeader: React.FC<{
     </View>
     {onRefresh && (
       <TouchableOpacity onPress={onRefresh} disabled={isLoading} style={styles.refreshBtn}>
-        <Ionicons 
-          name="refresh-outline" 
-          size={18} 
-          color={isLoading ? SUBTEXT : ACCENT} 
+        <Ionicons
+          name="refresh-outline"
+          size={18}
+          color={isLoading ? SUBTEXT : ACCENT}
         />
       </TouchableOpacity>
     )}
@@ -184,28 +75,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const { playStation, currentStation, unload } = useAudio();
   const { isOnline } = useNetworkStatus();
 
-  const [userName, setUserName]                     = useState('');
-  const [featuredStations, setFeaturedStations]     = useState<RadioStation[]>([]);
-  const [nearestStations, setNearestStations]       = useState<RadioStation[]>([]);
-  const [recommendedStations, setRecommended]       = useState<RadioStation[]>([]);
-  const [featuredLoading, setFeaturedLoading]       = useState(true);
-  const [nearestLoading, setNearestLoading]         = useState(true);
+  const [userName, setUserName] = useState('');
+  const [featuredStations, setFeaturedStations] = useState<RadioStation[]>([]);
+  const [nearestStations, setNearestStations] = useState<RadioStation[]>([]);
+  const [recommendedStations, setRecommended] = useState<RadioStation[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
+  const [nearestLoading, setNearestLoading] = useState(true);
   const [recommendedLoading, setRecommendedLoading] = useState(true);
-  const [locationDenied, setLocationDenied]         = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
 
   // ── Animations ──────────────────────────────────────────────────────────────
-  const masterFade  = useRef(new Animated.Value(0)).current;
+  const masterFade = useRef(new Animated.Value(0)).current;
   const headerSlide = useRef(new Animated.Value(-16)).current;
-  const sec0Slide   = useRef(new Animated.Value(36)).current;
-  const sec1Slide   = useRef(new Animated.Value(36)).current;
-  const sec2Slide   = useRef(new Animated.Value(36)).current;
-  const pulse       = useRef(new Animated.Value(0)).current;
+  const sec0Slide = useRef(new Animated.Value(36)).current;
+  const sec1Slide = useRef(new Animated.Value(36)).current;
+  const sec2Slide = useRef(new Animated.Value(36)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
 
   const featuredAnims = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
-  const nearestAnims  = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
-  const forYouAnims   = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
+  const nearestAnims = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
+  const forYouAnims = useRef(Array.from({ length: 10 }, () => new Animated.Value(0))).current;
 
-  // Skeleton shimmer loop
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -215,12 +105,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     ).start();
   }, []);
 
-  // Screen entrance
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(masterFade,  { toValue: 1, duration: 550, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.timing(masterFade, { toValue: 1, duration: 550, easing: Easing.out(Easing.quad), useNativeDriver: true }),
       Animated.spring(headerSlide, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
-      Animated.sequence([Animated.delay(65),  Animated.spring(sec0Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
+      Animated.sequence([Animated.delay(65), Animated.spring(sec0Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
       Animated.sequence([Animated.delay(195), Animated.spring(sec1Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
       Animated.sequence([Animated.delay(325), Animated.spring(sec2Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
     ]).start();
@@ -233,7 +122,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     ).start();
   }, []);
 
-  // ── Data fetching ───────────────────────────────────────────────────────────
   useEffect(() => {
     SecureStore.getItemAsync('user_name').then(n => { if (n) setUserName(n); });
     fetchFeatured();
@@ -256,7 +144,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const fetchNearest = async () => {
     setNearestLoading(true);
     try {
-      // ── STEP 1: Check permission status ──────────────────────────────────────
       console.log('[GPS-1] Checking location permission...');
       const { status } = await Location.requestForegroundPermissionsAsync();
       console.log('[GPS-1] Permission status:', status);
@@ -264,7 +151,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
       let location: Location.LocationObject | null = null;
 
-      // ── STEP 2: Try last known position ──────────────────────────────────────
       console.log('[GPS-2] Trying getLastKnownPositionAsync...');
       try {
         location = await Location.getLastKnownPositionAsync({ maxAge: 300_000 });
@@ -273,22 +159,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
         console.log('[GPS-2] Error:', e.message);
       }
 
-      // ── STEP 3: Try getCurrentPosition (Balanced) ─────────────────────────
       if (!location) {
-        console.log('[GPS-3] Trying getCurrentPositionAsync (Balanced)...');
+        console.log('[GPS-3] Trying getCurrentPositionAsync (Highest)...');
         try {
-          location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
           console.log('[GPS-3] OK:', location.coords.latitude, location.coords.longitude);
         } catch (e: any) {
           console.log('[GPS-3] Error:', e.message);
         }
       }
 
-      // ── STEP 4: Try getCurrentPosition (Lowest) ───────────────────────────
       if (!location) {
-        console.log('[GPS-4] Trying getCurrentPositionAsync (Lowest)...');
+        console.log('[GPS-4] Trying getCurrentPositionAsync (Balanced)...');
         try {
-          location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
+          location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
           console.log('[GPS-4] OK:', location.coords.latitude, location.coords.longitude);
         } catch (gpsErr: any) {
           console.log('[GPS-4] Final error:', gpsErr.message);
@@ -296,14 +180,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
         }
       }
 
-      // ── STEP 5: Call API ──────────────────────────────────────────────────
       const { latitude, longitude } = location!.coords;
       console.log(`[GPS-OK] Final coords → Lat: ${latitude}, Lon: ${longitude}`);
 
       const res = await api.post('/api/radio/nearest', { latitude, longitude });
       setNearestStations(res.data);
       staggerCards(nearestAnims.slice(0, res.data.length));
-      saveHomeStations(res.data, 'nearest').catch(() => {});
+      saveHomeStations(res.data, 'nearest').catch(() => { });
     } catch (e: any) {
       console.log('Nearest fetch handled error:', e.message || e);
       if (e.message && e.message.toLowerCase().includes('location')) {
@@ -323,7 +206,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       const res = await api.get('/api/radio/foryou');
       setRecommended(res.data);
       staggerCards(forYouAnims.slice(0, res.data.length));
-      saveHomeStations(res.data, 'foryou').catch(() => {});
+      saveHomeStations(res.data, 'foryou').catch(() => { });
     } catch (e: any) {
       console.log('ForYou fetch handled error:', e.message || e);
       const cached = await getHomeStations('foryou').catch(() => []);
@@ -334,7 +217,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     }
   };
 
-  // ── Logout ──────────────────────────────────────────────────────────────────
   const handleLogout = () => {
     Alert.alert('Cerrar Sesión', '¿Estás seguro?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -350,7 +232,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     ]);
   };
 
-  // ── Render helpers ──────────────────────────────────────────────────────────
   const greeting = getGreeting();
 
   const renderStation = (
@@ -364,6 +245,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       onPress={playStation}
       enterAnim={anims[index] ?? new Animated.Value(1)}
       featured={isFeatured}
+      layout="grid"
     />
   );
 
@@ -383,111 +265,111 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
         style={[styles.container, { opacity: masterFade }]}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <Animated.View style={[styles.header, { transform: [{ translateY: headerSlide }] }]}>
-        <View>
-          <Text style={styles.appName}>AETHER</Text>
-          <Text style={styles.greeting}>
-            {greeting.text}{userName ? `, ${userName}` : ''} {greeting.emoji}
-          </Text>
-          <Text style={styles.greetingSub}>Descubre tu próxima emisora favorita</Text>
-        </View>
-        <TouchableOpacity style={styles.avatarBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#9399B2" />
-        </TouchableOpacity>
-      </Animated.View>
-
-      {/* Emisoras Destacadas — only shown when there is data */}
-      {(featuredLoading || featuredStations.length > 0) && (
-        <Animated.View style={[styles.section, { transform: [{ translateY: sec0Slide }] }]}>
-          <SectionHeader icon="⭐" title="Emisoras Destacadas" />
-          {featuredLoading ? renderSkeletons() : (
-            <FlatList
-              data={featuredStations}
-              keyExtractor={item => item.id}
-              renderItem={info => renderStation(info, featuredAnims, true)}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.listContent}
-              getItemLayout={(_, i) => ({ length: CARD_WIDTH + 12, offset: (CARD_WIDTH + 12) * i, index: i })}
-            />
-          )}
+      >
+        {/* Header */}
+        <Animated.View style={[styles.header, { transform: [{ translateY: headerSlide }] }]}>
+          <View>
+            <Text style={styles.appName}>AETHER</Text>
+            <Text style={styles.greeting}>
+              {greeting.text}{userName ? `, ${userName}` : ''} {greeting.emoji}
+            </Text>
+            <Text style={styles.greetingSub}>Descubre tu próxima emisora favorita</Text>
+          </View>
+          <TouchableOpacity style={styles.avatarBtn} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color="#9399B2" />
+          </TouchableOpacity>
         </Animated.View>
-      )}
 
-      {/* Emisoras Cercanas */}
-      <Animated.View style={[styles.section, { transform: [{ translateY: sec1Slide }] }]}>
-        <SectionHeader 
-          icon="📍" 
-          title="Emisoras Cercanas" 
-          onRefresh={fetchNearest} 
-          isLoading={nearestLoading}
-        />
+        {/* Emisoras Destacadas — only shown when there is data */}
+        {(featuredLoading || featuredStations.length > 0) && (
+          <Animated.View style={[styles.section, { transform: [{ translateY: sec0Slide }] }]}>
+            <SectionHeader icon="⭐" title="Emisoras Destacadas" />
+            {featuredLoading ? renderSkeletons() : (
+              <FlatList
+                data={featuredStations}
+                keyExtractor={item => item.id}
+                renderItem={info => renderStation(info, featuredAnims, true)}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+                getItemLayout={(_, i) => ({ length: CARD_WIDTH + 12, offset: (CARD_WIDTH + 12) * i, index: i })}
+              />
+            )}
+          </Animated.View>
+        )}
 
-        {nearestLoading ? renderSkeletons()
-          : locationDenied ? (
-            <View style={styles.emptyBox}>
-              <Ionicons name="location-outline" size={30} color="#9399B2" />
-              <Text style={styles.emptyText}>Activa la ubicación para ver{'\n'}emisoras cercanas</Text>
-            </View>
-          ) : nearestStations.length === 0 ? (
-            <View style={styles.emptyBox}>
-              <Ionicons name="radio-outline" size={30} color="#9399B2" />
-              <Text style={styles.emptyText}>No hay emisoras disponibles en tu zona</Text>
-              <TouchableOpacity style={styles.retryBtn} onPress={fetchNearest} activeOpacity={0.8}>
-                <Ionicons name="refresh" size={16} color="#fff" />
-                <Text style={styles.retryBtnText}>Reintentar</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <FlatList
-              data={nearestStations}
-              keyExtractor={item => item.id}
-              renderItem={info => renderStation(info, nearestAnims)}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.listContent}
-              getItemLayout={(_, i) => ({ length: CARD_WIDTH + 12, offset: (CARD_WIDTH + 12) * i, index: i })}
-            />
-          )}
-      </Animated.View>
+        {/* Emisoras Cercanas */}
+        <Animated.View style={[styles.section, { transform: [{ translateY: sec1Slide }] }]}>
+          <SectionHeader
+            icon="📍"
+            title="Emisoras Cercanas"
+            onRefresh={fetchNearest}
+            isLoading={nearestLoading}
+          />
 
-      {/* Recomendadas para ti */}
-      <Animated.View style={[styles.section, { transform: [{ translateY: sec2Slide }] }]}>
-        <SectionHeader icon="✨" title="Recomendadas para ti" />
+          {nearestLoading ? renderSkeletons()
+            : locationDenied ? (
+              <View style={styles.emptyBox}>
+                <Ionicons name="location-outline" size={30} color="#9399B2" />
+                <Text style={styles.emptyText}>Activa la ubicación para ver{'\n'}emisoras cercanas</Text>
+              </View>
+            ) : nearestStations.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <Ionicons name="radio-outline" size={30} color="#9399B2" />
+                <Text style={styles.emptyText}>No hay emisoras disponibles en tu zona</Text>
+                <TouchableOpacity style={styles.retryBtn} onPress={fetchNearest} activeOpacity={0.8}>
+                  <Ionicons name="refresh" size={16} color="#fff" />
+                  <Text style={styles.retryBtnText}>Reintentar</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <FlatList
+                data={nearestStations}
+                keyExtractor={item => item.id}
+                renderItem={info => renderStation(info, nearestAnims)}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+                getItemLayout={(_, i) => ({ length: CARD_WIDTH + 12, offset: (CARD_WIDTH + 12) * i, index: i })}
+              />
+            )}
+        </Animated.View>
 
-        {recommendedLoading ? renderSkeletons()
-          : recommendedStations.length === 0 ? (
-            <View style={styles.emptyBox}>
-              <Text style={styles.emptyText}>Completa el cuestionario para{'\n'}ver recomendaciones</Text>
-            </View>
-          ) : (
-            <FlatList
-              data={recommendedStations}
-              keyExtractor={item => item.id}
-              renderItem={info => renderStation(info, forYouAnims)}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.listContent}
-              getItemLayout={(_, i) => ({ length: CARD_WIDTH + 12, offset: (CARD_WIDTH + 12) * i, index: i })}
-            />
-          )}
-      </Animated.View>
-    </Animated.ScrollView>
+        {/* Recomendadas para ti */}
+        <Animated.View style={[styles.section, { transform: [{ translateY: sec2Slide }] }]}>
+          <SectionHeader icon="✨" title="Recomendadas para ti" />
+
+          {recommendedLoading ? renderSkeletons()
+            : recommendedStations.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <Text style={styles.emptyText}>Completa el cuestionario para{'\n'}ver recomendaciones</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={recommendedStations}
+                keyExtractor={item => item.id}
+                renderItem={info => renderStation(info, forYouAnims)}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+                getItemLayout={(_, i) => ({ length: CARD_WIDTH + 12, offset: (CARD_WIDTH + 12) * i, index: i })}
+              />
+            )}
+        </Animated.View>
+      </Animated.ScrollView>
     </View>
   );
 };
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const ACCENT     = '#646cff';
+const ACCENT = '#646cff';
 const ACCENT_DIM = 'rgba(100,108,255,0.18)';
-const BG         = '#0E0E1A';
-const SURFACE    = '#16162A';
-const BORDER     = '#2D2D4A';
-const TEXT       = '#FFFFFF';
-const SUBTEXT    = '#9399B2';
+const BG = '#0E0E1A';
+const SURFACE = '#16162A';
+const BORDER = '#2D2D4A';
+const TEXT = '#FFFFFF';
+const SUBTEXT = '#9399B2';
 
 const styles = StyleSheet.create({
   rootContainer: {

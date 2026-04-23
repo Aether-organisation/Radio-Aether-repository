@@ -7,21 +7,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useAudio } from '../contexts/AudioContext';
+import { StationCard } from '../components/StationCard';
 import api from '../api/axios';
 
-interface Station {
-  id: string;
-  name: string;
-  logoUrl?: string;
-  streamUrl?: string;
-  genre?: string;
-  country?: string;
-}
+import { RadioStation } from '../types';
 
 interface MoodPlaylist {
   title: string;
   description: string;
-  stations: Station[];
+  stations: RadioStation[];
 }
 
 
@@ -70,72 +64,8 @@ const ThinkingDots: React.FC = () => {
 };
 
 
-interface StationCardProps {
-  station: Station;
-  index: number;
-  enterAnim: Animated.Value;
-}
-
-const StationCard: React.FC<StationCardProps> = ({ station, index, enterAnim }) => {
-  const { playStation, currentStation } = useAudio();
-  const [imgErr, setImgErr] = useState(false);
-  const isActive = currentStation?.id === station.id;
-
-  const opacity = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
-  const translateY = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] });
-
-  const handlePlay = () => {
-    playStation({
-      id: station.id,
-      name: station.name,
-      logoUrl: station.logoUrl ?? '',
-      streamUrl: station.streamUrl ?? '',
-      genre: station.genre ?? '',
-    });
-  };
-
-  return (
-    <Animated.View style={[styles.card, isActive && styles.cardActive, { opacity, transform: [{ translateY }] }]}>
-      <TouchableOpacity style={styles.cardInner} onPress={handlePlay} activeOpacity={0.75}>
-        {/* Logo */}
-        {station.logoUrl && !imgErr ? (
-          <Image
-            source={{ uri: station.logoUrl }}
-            style={styles.cardLogo}
-            onError={() => setImgErr(true)}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.cardLogo, styles.cardLogoFallback]}>
-            <Text style={styles.cardLogoText}>{station.name?.[0]?.toUpperCase() ?? '♫'}</Text>
-          </View>
-        )}
-
-        {/* Info */}
-        <View style={styles.cardInfo}>
-          <Text style={[styles.cardName, isActive && styles.cardNameActive]} numberOfLines={1}>
-            {station.name}
-          </Text>
-          {!!station.genre && (
-            <Text style={styles.cardGenre} numberOfLines={1}>{station.genre.split(',')[0]}</Text>
-          )}
-        </View>
-
-        {/* Play indicator / button */}
-        <View style={styles.cardPlay}>
-          {isActive ? (
-            <Ionicons name="musical-notes" size={18} color={ACCENT} />
-          ) : (
-            <Ionicons name="play-circle-outline" size={24} color={SUBTEXT} />
-          )}
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
-
-
 export const AiScreen: React.FC = () => {
+  const { currentStation, playStation } = useAudio();
   const [moodText, setMoodText] = useState('');
   const [loading, setLoading] = useState(false);
   const [contextualLoading, setCtxLoading] = useState(false);
@@ -203,7 +133,7 @@ export const AiScreen: React.FC = () => {
     }
 
     try {
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
       const { latitude, longitude } = loc.coords;
 
       const now = new Date();
@@ -331,8 +261,10 @@ export const AiScreen: React.FC = () => {
                   <StationCard
                     key={station.id}
                     station={station}
-                    index={index}
+                    isActive={currentStation?.id === station.id}
+                    onPress={playStation}
                     enterAnim={cardAnims[index] ?? new Animated.Value(1)}
+                    layout="row"
                   />
                 ))}
               </View>
@@ -556,60 +488,7 @@ const styles = StyleSheet.create({
   stationsList: {
     gap: 8,
   },
-
-  card: {
-    backgroundColor: SURFACE,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: BORDER,
-    overflow: 'hidden',
-  },
-  cardActive: {
-    borderColor: ACCENT,
-    backgroundColor: 'rgba(100,108,255,0.08)',
-  },
-  cardInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    gap: 12,
-  },
-  cardLogo: {
-    width: 46,
-    height: 46,
-    borderRadius: 10,
-    backgroundColor: BORDER,
-  },
-  cardLogoFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(100,108,255,0.18)',
-  },
-  cardLogoText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: ACCENT,
-  },
-  cardInfo: {
-    flex: 1,
-    gap: 3,
-  },
-  cardName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: TEXT,
-  },
-  cardNameActive: {
-    color: ACCENT,
-  },
-  cardGenre: {
-    fontSize: 12,
-    color: SUBTEXT,
-  },
-  cardPlay: {
-    width: 32,
-    alignItems: 'center',
-  },
+  // Removed inline styles for card
 
   emptyState: {
     alignItems: 'center',
