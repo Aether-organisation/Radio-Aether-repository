@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   Animated, Image, Easing, Alert, TextInput,
-  KeyboardAvoidingView, Platform, Keyboard,
+  KeyboardAvoidingView, Platform, Keyboard, Modal
 } from 'react-native';
 import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { HomeScreenProps } from '../types/navigation';
 import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { usePlaylists } from '../contexts/PlaylistsContext';
 import { RadioStation } from '../types';
 import api from '../api/axios';
 import { saveHomeStations, getHomeStations } from '../db/database';
@@ -143,6 +144,28 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const [ctxLoading, setCtxLoading]     = useState(false);
   const [aiPlaylist, setAiPlaylist]     = useState<AiPlaylist | null>(null);
   const [aiError, setAiError]           = useState<string | null>(null);
+
+  const { createPlaylist, addStationToPlaylist } = usePlaylists();
+  const [saveModalVisible, setSaveModalVisible] = useState(false);
+  const [saveModalName, setSaveModalName] = useState('');
+  const [saveLoading, setSaveLoading] = useState(false);
+
+  const handleConfirmSave = async () => {
+    if (!saveModalName.trim() || saveLoading || !aiPlaylist) return;
+    setSaveLoading(true);
+    try {
+      const newPlaylist = await createPlaylist(saveModalName.trim());
+      for (const st of aiPlaylist.stations) {
+        await addStationToPlaylist(newPlaylist.id, st);
+      }
+      setSaveModalVisible(false);
+      Alert.alert('Éxito', 'Lista guardada en tu biblioteca.');
+    } catch (e) {
+      Alert.alert('Error', 'No se pudo guardar la lista.');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
 
   // ── Animations ──────────────────────────────────────────────────────────────
   const masterFade  = useRef(new Animated.Value(0)).current;
@@ -460,22 +483,38 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
             {/* Stations — horizontal scroll */}
             {aiPlaylist.stations.length > 0 ? (
-              <FlatList
-                data={aiPlaylist.stations}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                  <StationCard
-                    station={item}
-                    isActive={currentStation?.id === item.id}
-                    onPress={playStation}
-                    enterAnim={new Animated.Value(1)}
-                    layout="grid"
-                  />
-                )}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 12, paddingTop: 4 }}
-              />
+              <>
+                <FlatList
+                  data={aiPlaylist.stations}
+                  keyExtractor={item => item.id}
+                  renderItem={({ item }) => (
+                    <StationCard
+                      station={item}
+                      isActive={currentStation?.id === item.id}
+                      onPress={playStation}
+                      enterAnim={new Animated.Value(1)}
+                      layout="grid"
+                    />
+                  )}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 12, paddingTop: 4, paddingBottom: 16 }}
+                />
+
+                <View style={styles.aiSavePrompt}>
+                  <Text style={styles.aiSavePromptText}>¿Te gusta lo que oyes? Guarda la lista</Text>
+                  <TouchableOpacity 
+                    style={styles.aiSavePromptBtn}
+                    onPress={() => {
+                      setSaveModalName(aiPlaylist.title.toLowerCase().replace(/[^a-záéíóúüñ0-9\s]/g, '').substring(0, 30));
+                      setSaveModalVisible(true);
+                    }}
+                  >
+                    <Ionicons name="bookmark" size={14} color="#fff" />
+                    <Text style={styles.aiSavePromptBtnText}>Guardar</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
             ) : (
               <Text style={styles.aiResponseEmpty}>
                 El éter no encontró emisoras para esto. Prueba con otras palabras.
@@ -561,6 +600,34 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
             )}
         </Animated.View>
       </Animated.ScrollView>
+
+      {/* Save Modal */}
+      <Modal visible={saveModalVisible} transparent animationType="fade">
+        <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Guardar lista</Text>
+            <Text style={styles.modalDesc}>Dale un nombre a tu nueva colección.</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={saveModalName}
+              onChangeText={setSaveModalName}
+              maxLength={30}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleConfirmSave}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setSaveModalVisible(false)} disabled={saveLoading}>
+                <Text style={styles.modalCancelBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalConfirmBtn, saveLoading && {opacity: 0.5}]} onPress={handleConfirmSave} disabled={saveLoading || !saveModalName.trim()}>
+                <Text style={styles.modalConfirmBtnText}>{saveLoading ? 'Guardando...' : 'Guardar'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
     </KeyboardAvoidingView>
   );
 };
@@ -984,5 +1051,99 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: Colors.aiPurple,
+  },
+  aiSavePrompt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(100,108,255,0.1)',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: Radius.md,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(100,108,255,0.2)',
+  },
+  aiSavePromptText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  aiSavePromptBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.cyan,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Radius.sm,
+    gap: 6,
+  },
+  aiSavePromptBtnText: {
+    color: Colors.void,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: 20,
+  },
+  modalInput: {
+    backgroundColor: Colors.void,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    borderRadius: Radius.sm,
+    color: Colors.textPrimary,
+    fontSize: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 24,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalCancelBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  modalCancelBtnText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalConfirmBtn: {
+    backgroundColor: Colors.cyan,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: Radius.sm,
+  },
+  modalConfirmBtnText: {
+    color: Colors.void,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
