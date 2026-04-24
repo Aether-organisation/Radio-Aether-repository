@@ -20,6 +20,7 @@ import { MiniPlayer }    from './src/components/MiniPlayer';
 import { RootStackParamList, RootTabParamList } from './src/types/navigation';
 import { AudioProvider }     from './src/contexts/AudioContext';
 import { FavoritesProvider } from './src/contexts/FavoritesContext';
+import { PlaylistsProvider } from './src/contexts/PlaylistsContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab   = createBottomTabNavigator<RootTabParamList>();
@@ -72,18 +73,20 @@ export default function App() {
   return (
     <AudioProvider>
       <FavoritesProvider>
-        <View style={{ flex: 1, backgroundColor: Colors.void }}>
-        <NavigationContainer>
-          <StatusBar style="light" />
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Login"    component={LoginScreen}    />
-            <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="Survey"   component={SurveyScreen}   />
-            <Stack.Screen name="Player"   component={PlayerScreen}   />
-            <Stack.Screen name="MainTabs" component={MainTabs}       />
-          </Stack.Navigator>
-        </NavigationContainer>
-        </View>
+        <PlaylistsProvider>
+          <View style={{ flex: 1, backgroundColor: Colors.void }}>
+            <NavigationContainer>
+              <StatusBar style="light" />
+              <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="Login"    component={LoginScreen}    />
+                <Stack.Screen name="Register" component={RegisterScreen} />
+                <Stack.Screen name="Survey"   component={SurveyScreen}   />
+                <Stack.Screen name="Player"   component={PlayerScreen}   />
+                <Stack.Screen name="MainTabs" component={MainTabs}       />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </View>
+        </PlaylistsProvider>
       </FavoritesProvider>
     </AudioProvider>
   );
