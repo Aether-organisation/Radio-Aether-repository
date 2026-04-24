@@ -7,11 +7,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { Colors, Radius, Shadows } from '../theme/theme';
+import { PlaylistPickerModal } from '../components/PlaylistPickerModal';
 
 export const PlayerScreen = () => {
   const { currentStation, isPlaying, loading, locationStatus, togglePlayback, error } = useAudio();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [imgError, setImgError] = useState(false);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   // ── Animations ────────────────────────────────────────────────────────────
   const contentFade  = useRef(new Animated.Value(0)).current;
@@ -167,11 +169,19 @@ export const PlayerScreen = () => {
             </TouchableOpacity>
           </Animated.View>
 
-          {/* Placeholder for symmetry */}
-          <View style={styles.sideBtn} />
+          {/* Add to playlist */}
+          <TouchableOpacity onPress={() => setPickerVisible(true)} style={styles.sideBtn}>
+            <Ionicons name="list-outline" size={26} color={Colors.textSecondary} />
+          </TouchableOpacity>
         </View>
 
       </Animated.View>
+
+      <PlaylistPickerModal
+        visible={pickerVisible}
+        station={currentStation}
+        onClose={() => setPickerVisible(false)}
+      />
     </View>
   );
 };

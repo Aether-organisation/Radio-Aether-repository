@@ -8,12 +8,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { Colors, Radius } from '../theme/theme';
+import { PlaylistPickerModal } from './PlaylistPickerModal';
 
 export const MiniPlayer = () => {
   const { currentStation, isPlaying, togglePlayback } = useAudio();
   const { isFavorite, toggleFavorite } = useFavorites();
   const navigation = useNavigation<any>();
   const [imgError, setImgError] = useState(false);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const slideAnim   = useRef(new Animated.Value(80)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -55,6 +57,7 @@ export const MiniPlayer = () => {
   const goToPlayer = () => navigation.navigate('MainTabs', { screen: 'NowPlayingTab' });
 
   return (
+    <>
     <Animated.View style={[styles.container, { transform: [{ translateY: slideAnim }], opacity: opacityAnim }]}>
       <View style={styles.topBorder} />
       <TouchableOpacity style={styles.inner} onPress={goToPlayer} activeOpacity={0.85}>
@@ -97,6 +100,14 @@ export const MiniPlayer = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
+          onPress={() => setPickerVisible(true)}
+          style={styles.iconBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+        >
+          <Ionicons name="list-outline" size={20} color={Colors.textSecondary} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
           onPress={togglePlayback}
           style={styles.iconBtn}
           hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
@@ -109,6 +120,13 @@ export const MiniPlayer = () => {
         </TouchableOpacity>
       </TouchableOpacity>
     </Animated.View>
+
+    <PlaylistPickerModal
+      visible={pickerVisible}
+      station={currentStation}
+      onClose={() => setPickerVisible(false)}
+    />
+  </>
   );
 };
 
