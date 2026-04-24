@@ -15,6 +15,7 @@ import { SearchScreen }  from './src/screens/SearchScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { SurveyScreen }  from './src/screens/SurveyScreen';
+import { PlaylistDetailScreen } from './src/screens/PlaylistDetailScreen';
 import { MiniPlayer }    from './src/components/MiniPlayer';
 
 import { RootStackParamList, RootTabParamList } from './src/types/navigation';
@@ -82,6 +83,7 @@ export default function App() {
                 <Stack.Screen name="Register" component={RegisterScreen} />
                 <Stack.Screen name="Survey"   component={SurveyScreen}   />
                 <Stack.Screen name="Player"   component={PlayerScreen}   />
+                <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
                 <Stack.Screen name="MainTabs" component={MainTabs}       />
               </Stack.Navigator>
             </NavigationContainer>

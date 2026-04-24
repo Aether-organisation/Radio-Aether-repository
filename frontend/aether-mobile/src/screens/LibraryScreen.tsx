@@ -5,7 +5,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { usePlaylists } from '../contexts/PlaylistsContext';
 import { useAudio } from '../contexts/AudioContext';
+import { useNavigation } from '@react-navigation/native';
 import { RadioStation } from '../types';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { OfflineBanner } from '../components/OfflineBanner';
@@ -124,7 +126,9 @@ const ListCard: React.FC<ListCardProps> = ({ icon, iconBg, title, description, c
 
 export const LibraryScreen = () => {
   const { favorites, toggleFavorite } = useFavorites();
+  const { playlists } = usePlaylists();
   const { playStation, currentStation } = useAudio();
+  const navigation = useNavigation<any>();
   const { isOnline } = useNetworkStatus();
   const [currentView, setCurrentView] = useState<View_>('library');
 
@@ -188,11 +192,29 @@ export const LibraryScreen = () => {
         enterAnim={cardAnim}
       />
 
-      {/* Placeholder de próximas listas */}
-      <Animated.View style={[styles.comingSoonCard, { opacity: cardAnim }]}>
-        <Ionicons name="add-circle-outline" size={22} color={SUBTEXT} />
-        <Text style={styles.comingSoonText}>Próximamente: listas personalizadas</Text>
-      </Animated.View>
+      <View style={[styles.sectionLabel, { marginTop: 20 }]}>
+        <Text style={styles.sectionLabelText}>LISTAS PERSONALIZADAS</Text>
+      </View>
+
+      {playlists.length === 0 ? (
+        <Animated.View style={[styles.comingSoonCard, { opacity: cardAnim }]}>
+          <Ionicons name="list" size={22} color={SUBTEXT} />
+          <Text style={styles.comingSoonText}>Aún no has creado listas</Text>
+        </Animated.View>
+      ) : (
+        playlists.map((pl, i) => (
+          <ListCard
+            key={pl.id}
+            icon="📻"
+            iconBg="rgba(100,108,255,0.15)"
+            title={pl.name}
+            description="Lista de emisoras"
+            count={pl.stations.length}
+            onPress={() => navigation.navigate('PlaylistDetail', { playlistId: pl.id })}
+            enterAnim={cardAnim}
+          />
+        ))
+      )}
     </>
   );
 

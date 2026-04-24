@@ -7,10 +7,14 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { usePlaylists } from '../contexts/PlaylistsContext';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { RadioStation } from '../types';
+import { RootTabParamList } from '../types/navigation';
 import api from '../api/axios';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { OfflineBanner } from '../components/OfflineBanner';
+import { PlaylistPickerModal } from '../components/PlaylistPickerModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,9 +56,10 @@ interface ResultRowProps {
   station: SearchStation;
   isActive: boolean;
   onPlay: (s: RadioStation) => void;
+  onAddToList: (s: SearchStation) => void;
   enterAnim: Animated.Value;
 }
-const ResultRow: React.FC<ResultRowProps> = ({ station, isActive, onPlay, enterAnim }) => {
+const ResultRow: React.FC<ResultRowProps> = ({ station, isActive, onPlay, onAddToList, enterAnim }) => {
   const [imgError, setImgError] = useState(false);
   const heartScale = useRef(new Animated.Value(1)).current;
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -109,20 +114,30 @@ const ResultRow: React.FC<ResultRowProps> = ({ station, isActive, onPlay, enterA
         <Ionicons name="musical-notes" size={14} color={ACCENT} style={{ marginRight: 8 }} />
       )}
 
-      {/* Heart */}
-      <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+      {/* Actions */}
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TouchableOpacity
-          onPress={handleFavorite}
+          onPress={() => onAddToList(station)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={styles.heartBtn}
+          style={styles.iconBtn}
         >
-          <Ionicons
-            name={fav ? 'heart' : 'heart-outline'}
-            size={20}
-            color={fav ? '#ff4d7d' : '#9399B2'}
-          />
+          <Ionicons name="list-outline" size={20} color="#9399B2" />
         </TouchableOpacity>
-      </Animated.View>
+
+        <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+          <TouchableOpacity
+            onPress={handleFavorite}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={styles.iconBtn}
+          >
+            <Ionicons
+              name={fav ? 'heart' : 'heart-outline'}
+              size={20}
+              color={fav ? '#ff4d7d' : '#9399B2'}
+            />
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
     </Animated.View>
   );
 };
@@ -146,7 +161,12 @@ const SkeletonRow: React.FC<{ pulse: Animated.Value }> = ({ pulse }) => {
 
 export const SearchScreen = () => {
   const { playStation, currentStation } = useAudio();
+  const { addStationToPlaylist } = usePlaylists();
   const { isOnline } = useNetworkStatus();
+  
+  const route = useRoute<RouteProp<RootTabParamList, 'SearchTab'>>();
+  const navigation = useNavigation<any>();
+  const targetPlaylistId = route.params?.targetPlaylistId;
 
   const [query, setQuery]         = useState('');
   const [filter, setFilter]       = useState<FilterType>('name');
@@ -154,6 +174,14 @@ export const SearchScreen = () => {
   const [loading, setLoading]     = useState(false);
   const [searched, setSearched]   = useState(false);
   const [error, setError]         = useState<string | null>(null);
+
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [selectedStation, setSelectedStation] = useState<SearchStation | null>(null);
+
+  const openPicker = (s: SearchStation) => {
+    setSelectedStation(s);
+    setPickerVisible(true);
+  };
 
   // ── Animations ────────────────────────────────────────────────────────────
   const masterFade  = useRef(new Animated.Value(0)).current;
@@ -234,6 +262,19 @@ export const SearchScreen = () => {
     setSearched(false);
   };
 
+  const handleStationPress = async (station: SearchStation) => {
+    if (targetPlaylistId) {
+      try {
+        await addStationToPlaylist(targetPlaylistId, station);
+        Alert.alert('Añadida', `"${station.name}" se ha añadido a la lista.`);
+      } catch (e) {
+        Alert.alert('Error', 'No se pudo añadir la emisora a la lista.');
+      }
+    } else {
+      playStation(station);
+    }
+  };
+
   // ── Render content ────────────────────────────────────────────────────────
 
   const renderContent = () => {
@@ -292,7 +333,8 @@ export const SearchScreen = () => {
           <ResultRow
             station={item}
             isActive={currentStation?.id === item.id}
-            onPlay={playStation}
+            onPlay={handleStationPress}
+            onAddToList={openPicker}
             enterAnim={rowAnims[index] ?? new Animated.Value(1)}
           />
         )}
@@ -317,8 +359,14 @@ export const SearchScreen = () => {
 
       {/* Header */}
       <Animated.View style={[styles.header, { transform: [{ translateY: headerSlide }] }]}>
+        {targetPlaylistId && (
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={20} color={ACCENT} />
+            <Text style={styles.backText}>Volver a la lista</Text>
+          </TouchableOpacity>
+        )}
         <Text style={styles.appName}>AETHER</Text>
-        <Text style={styles.title}>Buscar</Text>
+        <Text style={styles.title}>{targetPlaylistId ? 'Añadir emisoras' : 'Buscar'}</Text>
 
         {/* Search bar */}
         <View style={styles.searchBar}>
@@ -366,6 +414,12 @@ export const SearchScreen = () => {
       {/* Results / states */}
       {renderContent()}
 
+      <PlaylistPickerModal
+        visible={pickerVisible}
+        station={selectedStation}
+        onClose={() => setPickerVisible(false)}
+      />
+
     </Animated.View>
     </View>
   );
@@ -408,6 +462,17 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: TEXT,
     marginBottom: 16,
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  backText: {
+    color: ACCENT,
+    fontSize: 14,
+    fontWeight: '600',
   },
 
   // Search bar
@@ -528,8 +593,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: SUBTEXT,
   },
-  heartBtn: {
+  iconBtn: {
     padding: 4,
+    marginLeft: 8,
   },
 
   // Skeleton

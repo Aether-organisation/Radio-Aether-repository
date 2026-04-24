@@ -8,11 +8,12 @@ export type RootStackParamList = {
   Survey: undefined;
   Player: undefined;
   MainTabs: undefined;
+  PlaylistDetail: { playlistId: string };
 };
 
 export type RootTabParamList = {
   HomeTab: undefined;
-  SearchTab: undefined;
+  SearchTab: { targetPlaylistId?: string } | undefined;
   LibraryTab: undefined;
   ProfileTab: undefined;
   NowPlayingTab: undefined;
