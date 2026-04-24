@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { Colors, Radius } from '../theme/theme';
 
 export const MiniPlayer = () => {
   const { currentStation, isPlaying, togglePlayback } = useAudio();
@@ -16,6 +17,7 @@ export const MiniPlayer = () => {
 
   const slideAnim   = useRef(new Animated.Value(80)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const breatheAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (currentStation) {
@@ -32,6 +34,19 @@ export const MiniPlayer = () => {
     }
   }, [!!currentStation]);
 
+  useEffect(() => {
+    if (currentStation && isPlaying) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(breatheAnim, { toValue: 1.04, duration: 1800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(breatheAnim, { toValue: 1.0,  duration: 1800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        ])
+      ).start();
+    } else {
+      breatheAnim.setValue(1);
+    }
+  }, [isPlaying, !!currentStation]);
+
   if (!currentStation) return null;
 
   const fav     = isFavorite(currentStation.id);
@@ -41,21 +56,24 @@ export const MiniPlayer = () => {
 
   return (
     <Animated.View style={[styles.container, { transform: [{ translateY: slideAnim }], opacity: opacityAnim }]}>
+      <View style={styles.topBorder} />
       <TouchableOpacity style={styles.inner} onPress={goToPlayer} activeOpacity={0.85}>
-        {hasLogo ? (
-          <Image
-            source={{ uri: currentStation.logoUrl }}
-            style={styles.logo}
-            onError={() => setImgError(true)}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.logo, styles.logoFallback]}>
-            <Text style={styles.logoFallbackText}>
-              {currentStation.name?.charAt(0)?.toUpperCase() ?? '♪'}
-            </Text>
-          </View>
-        )}
+        <Animated.View style={{ transform: [{ scale: breatheAnim }] }}>
+          {hasLogo ? (
+            <Image
+              source={{ uri: currentStation.logoUrl }}
+              style={styles.logo}
+              onError={() => setImgError(true)}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.logo, styles.logoFallback]}>
+              <Text style={styles.logoFallbackText}>
+                {currentStation.name?.charAt(0)?.toUpperCase() ?? '♪'}
+              </Text>
+            </View>
+          )}
+        </Animated.View>
 
         <View style={styles.info}>
           <Text style={styles.stationName} numberOfLines={1}>{currentStation.name}</Text>
@@ -74,7 +92,7 @@ export const MiniPlayer = () => {
           <Ionicons
             name={fav ? 'heart' : 'heart-outline'}
             size={20}
-            color={fav ? '#ff4d7d' : '#9399B2'}
+            color={fav ? Colors.favorite : Colors.textSecondary}
           />
         </TouchableOpacity>
 
@@ -86,7 +104,7 @@ export const MiniPlayer = () => {
           <Ionicons
             name={isPlaying ? 'pause-circle' : 'play-circle'}
             size={32}
-            color="#646cff"
+            color={Colors.cyan}
           />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -100,16 +118,22 @@ const styles = StyleSheet.create({
     bottom: 60,
     left: 10,
     right: 10,
-    backgroundColor: '#16162A',
-    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: '#2D2D4A',
+    borderColor: Colors.surfaceBorder,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 12,
     zIndex: 1000,
+    overflow: 'hidden',
+  },
+  topBorder: {
+    height: 1,
+    backgroundColor: Colors.surfaceBorder,
+    borderRadius: 1,
   },
   inner: {
     flexDirection: 'row',
@@ -124,26 +148,26 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   logoFallback: {
-    backgroundColor: 'rgba(100,108,255,0.18)',
+    backgroundColor: 'rgba(102,252,241,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoFallbackText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#646cff',
+    color: Colors.cyan,
   },
   info: {
     flex: 1,
   },
   stationName: {
-    color: '#FFFFFF',
+    color: Colors.textPrimary,
     fontWeight: '700',
     fontSize: 14,
     marginBottom: 2,
   },
   genre: {
-    color: '#9399B2',
+    color: Colors.textSecondary,
     fontSize: 12,
   },
   iconBtn: {

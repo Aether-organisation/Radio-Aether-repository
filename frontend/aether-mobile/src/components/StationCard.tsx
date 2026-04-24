@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated, Image, ViewStyle, S
 import { Ionicons } from '@expo/vector-icons';
 import { RadioStation } from '../types';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { Colors, Radius, Shadows } from '../theme/theme';
 
 export interface StationCardProps {
   station: RadioStation;
@@ -71,14 +72,14 @@ export const StationCard: React.FC<StationCardProps> = ({ station, isActive, onP
           <View style={styles.rowCardActions}>
             <Animated.View style={[{ transform: [{ scale: heartScale }] }]}>
               <TouchableOpacity onPress={handleFavorite} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ marginRight: 12 }}>
-                <Ionicons name={fav ? 'heart' : 'heart-outline'} size={20} color={fav ? '#ff4d7d' : SUBTEXT} />
+                <Ionicons name={fav ? 'heart' : 'heart-outline'} size={20} color={fav ? Colors.favorite : Colors.textSecondary} />
               </TouchableOpacity>
             </Animated.View>
             <View style={styles.rowCardPlay}>
               {isActive ? (
-                <Ionicons name="musical-notes" size={18} color={ACCENT} />
+                <Ionicons name="musical-notes" size={18} color={Colors.cyan} />
               ) : (
-                <Ionicons name="play-circle-outline" size={24} color={SUBTEXT} />
+                <Ionicons name="play-circle-outline" size={24} color={Colors.textSecondary} />
               )}
             </View>
           </View>
@@ -124,7 +125,7 @@ export const StationCard: React.FC<StationCardProps> = ({ station, isActive, onP
             <Ionicons
               name={fav ? 'heart' : 'heart-outline'}
               size={18}
-              color={fav ? '#ff4d7d' : 'rgba(255,255,255,0.75)'}
+              color={fav ? Colors.favorite : 'rgba(255,255,255,0.75)'}
             />
           </TouchableOpacity>
         </Animated.View>
@@ -159,24 +160,19 @@ export const StationCard: React.FC<StationCardProps> = ({ station, isActive, onP
   );
 };
 
-const CARD_WIDTH    = 160;
-const CARD_HEIGHT   = 200;
-const ACCENT     = '#646cff';
-const ACCENT_DIM = 'rgba(100,108,255,0.18)';
-const SURFACE    = '#16162A';
-const BORDER     = '#2D2D4A';
-const TEXT       = '#FFFFFF';
-const SUBTEXT    = '#9399B2';
+const CARD_WIDTH  = 160;
+const CARD_HEIGHT = 200;
 
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    backgroundColor: SURFACE,
-    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: Colors.surfaceBorder,
     overflow: 'hidden',
+    ...Shadows.card,
   },
   cardImageContainer: {
     width: '100%',
@@ -188,20 +184,20 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   cardImageFallback: {
-    backgroundColor: ACCENT_DIM,
+    backgroundColor: 'rgba(102,252,241,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardImageFallbackText: {
     fontSize: 34,
     fontWeight: '700',
-    color: ACCENT,
+    color: Colors.cyan,
   },
   playingBadge: {
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: ACCENT,
+    backgroundColor: Colors.cyan,
     borderRadius: 10,
     width: 20,
     height: 20,
@@ -221,13 +217,13 @@ const styles = StyleSheet.create({
   cardName: {
     fontSize: 13,
     fontWeight: '700',
-    color: TEXT,
+    color: Colors.textPrimary,
     lineHeight: 18,
     marginBottom: 4,
   },
   cardGenre: {
     fontSize: 11,
-    color: SUBTEXT,
+    color: Colors.textSecondary,
     fontWeight: '500',
   },
   playBtnWrap: {
@@ -239,20 +235,16 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: ACCENT,
+    backgroundColor: Colors.cyan,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: ACCENT,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
-    elevation: 6,
+    ...Shadows.cyan,
   },
   playBtnActive: {
-    backgroundColor: '#4a52d4',
+    backgroundColor: Colors.cyanMuted,
   },
   cardFeatured: {
-    borderColor: '#f59e0b',
+    borderColor: '#F59E0B',
     borderWidth: 1.5,
   },
   featuredBadge: {
@@ -269,17 +261,17 @@ const styles = StyleSheet.create({
   featuredBadgeText: {
     fontSize: 12,
   },
-  
+
   rowCard: {
-    backgroundColor: SURFACE,
-    borderRadius: 14,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: Colors.surfaceBorder,
     overflow: 'hidden',
   },
   rowCardActive: {
-    borderColor: ACCENT,
-    backgroundColor: 'rgba(100,108,255,0.08)',
+    borderColor: Colors.cyan,
+    backgroundColor: Colors.surfaceActive,
   },
   rowCardInner: {
     flexDirection: 'row',
@@ -291,17 +283,17 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 10,
-    backgroundColor: BORDER,
+    backgroundColor: Colors.surfaceBorder,
   },
   rowCardLogoFallback: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(100,108,255,0.18)',
+    backgroundColor: 'rgba(102,252,241,0.08)',
   },
   rowCardLogoText: {
     fontSize: 20,
     fontWeight: '700',
-    color: ACCENT,
+    color: Colors.cyan,
   },
   rowCardInfo: {
     flex: 1,
@@ -310,14 +302,14 @@ const styles = StyleSheet.create({
   rowCardName: {
     fontSize: 15,
     fontWeight: '600',
-    color: TEXT,
+    color: Colors.textPrimary,
   },
   rowCardNameActive: {
-    color: ACCENT,
+    color: Colors.cyan,
   },
   rowCardGenre: {
     fontSize: 12,
-    color: SUBTEXT,
+    color: Colors.textSecondary,
   },
   rowCardActions: {
     flexDirection: 'row',

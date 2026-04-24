@@ -6,6 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { Colors, Radius, Shadows } from '../theme/theme';
 
 export const PlayerScreen = () => {
   const { currentStation, isPlaying, loading, locationStatus, togglePlayback, error } = useAudio();
@@ -67,7 +68,8 @@ export const PlayerScreen = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#646cff" />
+        <Text style={styles.tuningText}>Sintonizando el éter...</Text>
+        <ActivityIndicator size="large" color={Colors.cyan} />
         <Text style={styles.loadingText}>{locationStatus}</Text>
       </View>
     );
@@ -77,9 +79,9 @@ export const PlayerScreen = () => {
   if (!currentStation) {
     return (
       <View style={styles.container}>
-        <Ionicons name="radio-outline" size={80} color="#2D2D4A" />
-        <Text style={styles.noStationTitle}>Sin emisora activa</Text>
-        <Text style={styles.noStationSub}>Selecciona una emisora desde Inicio{'\n'}para comenzar a escuchar</Text>
+        <Ionicons name="radio-outline" size={80} color={Colors.surfaceBorder} />
+        <Text style={styles.noStationTitle}>Aquí no hay nada sonando.</Text>
+        <Text style={styles.noStationSub}>Elige una emisora desde Ondas{'\n'}y vuelve aquí.</Text>
       </View>
     );
   }
@@ -124,7 +126,7 @@ export const PlayerScreen = () => {
           {/* Live pill */}
           <View style={styles.livePill}>
             <View style={[styles.liveDot, isPlaying && styles.liveDotActive]} />
-            <Text style={styles.liveText}>{isPlaying ? 'EN DIRECTO' : 'PAUSADO'}</Text>
+            <Text style={[styles.liveText, isPlaying && { color: Colors.cyan }]}>{isPlaying ? 'EN DIRECTO' : 'PAUSADO'}</Text>
           </View>
         </View>
 
@@ -144,7 +146,7 @@ export const PlayerScreen = () => {
               <Ionicons
                 name={fav ? 'heart' : 'heart-outline'}
                 size={28}
-                color={fav ? '#ff4d7d' : '#9399B2'}
+                color={fav ? Colors.favorite : Colors.textSecondary}
               />
             </TouchableOpacity>
           </Animated.View>
@@ -176,16 +178,10 @@ export const PlayerScreen = () => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const ACCENT   = '#646cff';
-const BG       = '#0E0E1A';
-const SURFACE  = '#16162A';
-const TEXT     = '#FFFFFF';
-const SUBTEXT  = '#9399B2';
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: Colors.void,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -197,8 +193,14 @@ const styles = StyleSheet.create({
   },
 
   // ── Loading / empty ────────────────────────────────────────────────────────
+  tuningText: {
+    color: Colors.textSecondary,
+    fontSize: 13,
+    letterSpacing: 1,
+    marginBottom: 16,
+  },
   loadingText: {
-    color: SUBTEXT,
+    color: Colors.textSecondary,
     marginTop: 16,
     fontSize: 15,
     letterSpacing: 0.5,
@@ -206,13 +208,13 @@ const styles = StyleSheet.create({
   noStationTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: TEXT,
+    color: Colors.textPrimary,
     marginTop: 20,
     marginBottom: 8,
   },
   noStationSub: {
     fontSize: 14,
-    color: SUBTEXT,
+    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -231,17 +233,17 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: SURFACE,
+    backgroundColor: Colors.surface,
   },
   logoFallback: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(100,108,255,0.15)',
+    backgroundColor: 'rgba(102,252,241,0.08)',
   },
   logoFallbackText: {
     fontSize: 72,
     fontWeight: '800',
-    color: ACCENT,
+    color: Colors.cyan,
   },
   glowRing: {
     position: 'absolute',
@@ -252,11 +254,11 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   glowRingActive: {
-    borderColor: 'rgba(100,108,255,0.4)',
-    shadowColor: ACCENT,
+    borderColor: Colors.cyanGlow,
+    shadowColor: Colors.cyan,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
     elevation: 10,
   },
 
@@ -269,33 +271,33 @@ const styles = StyleSheet.create({
   stationName: {
     fontSize: 24,
     fontWeight: '800',
-    color: TEXT,
+    color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 6,
     lineHeight: 30,
   },
   genre: {
     fontSize: 15,
-    color: SUBTEXT,
+    color: Colors.textSecondary,
     marginBottom: 14,
     textTransform: 'capitalize',
   },
   livePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: SURFACE,
+    backgroundColor: Colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 5,
-    borderRadius: 20,
+    borderRadius: Radius.full,
     gap: 6,
     borderWidth: 1,
-    borderColor: '#2D2D4A',
+    borderColor: Colors.surfaceBorder,
   },
   liveDot: {
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: SUBTEXT,
+    backgroundColor: Colors.textSecondary,
   },
   liveDotActive: {
     backgroundColor: '#22c55e',
@@ -308,7 +310,7 @@ const styles = StyleSheet.create({
   liveText: {
     fontSize: 11,
     fontWeight: '800',
-    color: SUBTEXT,
+    color: Colors.textSecondary,
     letterSpacing: 1.5,
   },
 
@@ -319,7 +321,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,77,77,0.1)',
     borderWidth: 1,
     borderColor: 'rgba(255,77,77,0.3)',
-    borderRadius: 10,
+    borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginBottom: 20,
@@ -327,7 +329,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   errorText: {
-    color: '#ff4d4d',
+    color: Colors.textError,
     fontSize: 13,
     flex: 1,
   },
@@ -349,17 +351,17 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: ACCENT,
+    backgroundColor: Colors.cyan,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: ACCENT,
+    ...Shadows.cyan,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.6,
     shadowRadius: 16,
     elevation: 12,
   },
   playBtnPaused: {
-    backgroundColor: '#4a52d4',
-    shadowOpacity: 0.3,
+    backgroundColor: Colors.cyanMuted,
+    shadowOpacity: 0.2,
   },
 });

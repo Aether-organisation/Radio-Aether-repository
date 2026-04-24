@@ -27,7 +27,7 @@ public class AiService {
             Respond ONLY with a valid JSON object matching this exact structure:
             {
               "playlistTitle": "creative evocative title in the user's language",
-              "playlistDescription": "2-3 sentence empathetic description in the user's language",
+              "playlistDescription": "A warm, personal message of 1-2 sentences spoken directly to the user in second person (tú), explaining why this selection was made for them — like a friend who truly gets what they need right now. NEVER use search-engine language like 'Results for:' or 'Resultados para:'.",
               "tags": ["tag1", "tag2", "tag3", "tag4"],
               "genres": ["genre1", "genre2"],
               "mood": "one word mood descriptor"
@@ -40,6 +40,9 @@ public class AiService {
             - Generate 1-2 genres maximum
             - The title must be creative and evocative, not generic
             - The description must be empathetic and match the user's language
+            - The description must speak directly to the user using tú (e.g. "Aquí tienes...",
+              "Te he preparado...", "Esto es para ti cuando..."). Never describe the playlist
+              in third person or summarize the user's query back to them.
             - Return ONLY the JSON, no extra text
             """;
 
