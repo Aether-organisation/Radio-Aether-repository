@@ -15,6 +15,7 @@ import api from '../api/axios';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { PlaylistPickerModal } from '../components/PlaylistPickerModal';
+import { Colors } from '../theme/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,7 +46,7 @@ const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active, onPress })
     onPress={onPress}
     activeOpacity={0.75}
   >
-    <Ionicons name={icon as any} size={13} color={active ? '#fff' : '#9399B2'} />
+    <Ionicons name={icon as any} size={13} color={active ? '#fff' : SUBTEXT} />
     <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{label}</Text>
   </TouchableOpacity>
 );
@@ -121,7 +122,7 @@ const ResultRow: React.FC<ResultRowProps> = ({ station, isActive, onPlay, onAddT
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={styles.iconBtn}
         >
-          <Ionicons name="list-outline" size={20} color="#9399B2" />
+          <Ionicons name="list-outline" size={20} color={SUBTEXT} />
         </TouchableOpacity>
 
         <Animated.View style={{ transform: [{ scale: heartScale }] }}>
@@ -133,7 +134,7 @@ const ResultRow: React.FC<ResultRowProps> = ({ station, isActive, onPlay, onAddT
             <Ionicons
               name={fav ? 'heart' : 'heart-outline'}
               size={20}
-              color={fav ? '#ff4d7d' : '#9399B2'}
+              color={fav ? Colors.favorite : SUBTEXT}
             />
           </TouchableOpacity>
         </Animated.View>
@@ -427,12 +428,12 @@ export const SearchScreen = () => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const ACCENT  = '#646cff';
-const BG      = '#0E0E1A';
-const SURFACE = '#16162A';
-const BORDER  = '#2D2D4A';
-const TEXT    = '#FFFFFF';
-const SUBTEXT = '#9399B2';
+const ACCENT  = Colors.cyan;
+const BG      = Colors.void;
+const SURFACE = Colors.surface;
+const BORDER  = Colors.surfaceBorder;
+const TEXT    = Colors.textPrimary;
+const SUBTEXT = Colors.textSecondary;
 
 const styles = StyleSheet.create({
   rootContainer: {
@@ -569,7 +570,7 @@ const styles = StyleSheet.create({
   rowLogoFallback: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(100,108,255,0.18)',
+    backgroundColor: Colors.cyanGlow,
   },
   rowLogoText: {
     fontSize: 20,

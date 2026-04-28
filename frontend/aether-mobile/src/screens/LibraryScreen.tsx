@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { RadioStation } from '../types';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { OfflineBanner } from '../components/OfflineBanner';
+import { Colors } from '../theme/theme';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -80,7 +81,7 @@ const StationRow: React.FC<StationRowProps> = ({ station, isActive, onPlay, onRe
           style={styles.rowHeartBtn}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="heart" size={20} color="#ff4d7d" />
+          <Ionicons name="heart" size={20} color={Colors.favorite} />
         </TouchableOpacity>
       </Animated.View>
     </Animated.View>
@@ -278,12 +279,12 @@ export const LibraryScreen = () => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const ACCENT  = '#646cff';
-const BG      = '#0E0E1A';
-const SURFACE = '#16162A';
-const BORDER  = '#2D2D4A';
-const TEXT    = '#FFFFFF';
-const SUBTEXT = '#9399B2';
+const ACCENT  = Colors.cyan;
+const BG      = Colors.void;
+const SURFACE = Colors.surface;
+const BORDER  = Colors.surfaceBorder;
+const TEXT    = Colors.textPrimary;
+const SUBTEXT = Colors.textSecondary;
 
 const styles = StyleSheet.create({
   rootContainer: {
@@ -437,7 +438,7 @@ const styles = StyleSheet.create({
   rowLogoFallback: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(100,108,255,0.18)',
+    backgroundColor: Colors.cyanGlow,
   },
   rowLogoFallbackText: {
     fontSize: 20,
