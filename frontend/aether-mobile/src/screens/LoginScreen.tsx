@@ -2,16 +2,22 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import api from '../api/axios';
+import { useFavorites } from '../contexts/FavoritesContext';
+import { usePlaylists } from '../contexts/PlaylistsContext';
 
 export const LoginScreen = ({ navigation }: any) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const { loadFavorites } = useFavorites();
+    const { loadPlaylists } = usePlaylists();
 
     const handleLogin = async () => {
         try {
             const response = await api.post('/auth/login', { email, password });
 
             await SecureStore.setItemAsync('jwt_token', response.data.token);
+            loadFavorites().catch(() => {});
+            loadPlaylists().catch(() => {});
 
             if (!response.data.surveyCompleted) {
                 navigation.replace('Survey');

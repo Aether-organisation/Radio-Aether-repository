@@ -8,6 +8,7 @@ interface FavoritesContextType {
   isFavorite: (stationId: string) => boolean;
   toggleFavorite: (station: RadioStation) => Promise<void>;
   loadFavorites: () => Promise<void>;
+  clearFavorites: () => void;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
@@ -40,6 +41,11 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
     (stationId: string) => favorites.some(f => f.id === stationId),
     [favorites]
   );
+
+  const clearFavorites = useCallback(() => {
+    setFavorites([]);
+    saveFavorites([]).catch(() => {});
+  }, []);
 
   const toggleFavorite = useCallback(async (station: RadioStation) => {
     const alreadyFav = favorites.some(f => f.id === station.id);
@@ -79,7 +85,7 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, [favorites]);
 
   return (
-    <FavoritesContext.Provider value={{ favorites, isFavorite, toggleFavorite, loadFavorites }}>
+    <FavoritesContext.Provider value={{ favorites, isFavorite, toggleFavorite, loadFavorites, clearFavorites }}>
       {children}
     </FavoritesContext.Provider>
   );

@@ -9,6 +9,7 @@ interface PlaylistsContextType {
   deletePlaylist: (playlistId: string) => Promise<void>;
   addStationToPlaylist: (playlistId: string, station: RadioStation) => Promise<void>;
   removeStationFromPlaylist: (playlistId: string, stationId: string) => Promise<void>;
+  resetPlaylists: () => void;
 }
 
 const PlaylistsContext = createContext<PlaylistsContextType | undefined>(undefined);
@@ -40,6 +41,10 @@ export const PlaylistsProvider: React.FC<{ children: ReactNode }> = ({ children 
     const newPlaylist = res.data;
     setPlaylists(prev => [newPlaylist, ...prev]);
     return newPlaylist;
+  }, []);
+
+  const resetPlaylists = useCallback(() => {
+    setPlaylists([]);
   }, []);
 
   const deletePlaylist = useCallback(async (playlistId: string) => {
@@ -83,6 +88,7 @@ export const PlaylistsProvider: React.FC<{ children: ReactNode }> = ({ children 
       deletePlaylist,
       addStationToPlaylist,
       removeStationFromPlaylist,
+      resetPlaylists,
     }}>
       {children}
     </PlaylistsContext.Provider>

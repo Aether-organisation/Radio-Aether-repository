@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api/axios';
+import { useFavorites } from '../contexts/FavoritesContext';
+import { usePlaylists } from '../contexts/PlaylistsContext';
+import { useAudio } from '../contexts/AudioContext';
 
-export const ProfileScreen = () => {
+export const ProfileScreen = ({ navigation }: any) => {
+  const { clearFavorites } = useFavorites();
+  const { resetPlaylists } = usePlaylists();
+  const { unload } = useAudio();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [emailVisible, setEmailVisible] = useState(false);
@@ -48,6 +55,23 @@ export const ProfileScreen = () => {
         Alert.alert('Error', 'No se pudo actualizar la foto');
       }
     }
+  };
+
+  const handleLogout = () => {
+    Alert.alert('Cerrar sesión', '¿Seguro que quieres salir?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Salir',
+        style: 'destructive',
+        onPress: async () => {
+          await unload();
+          clearFavorites();
+          resetPlaylists();
+          await SecureStore.deleteItemAsync('jwt_token');
+          navigation.replace('Login');
+        },
+      },
+    ]);
   };
 
   const handleChangePassword = async () => {
@@ -153,6 +177,11 @@ export const ProfileScreen = () => {
           )}
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={20} color="#ff4d4d" />
+        <Text style={styles.logoutText}>Cerrar sesión</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -178,5 +207,7 @@ const styles = StyleSheet.create({
   inputIcon: { marginRight: 12 },
   input: { flex: 1, color: '#fff', fontSize: 16 },
   button: { backgroundColor: '#646cff', height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 8 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8, marginBottom: 32, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,77,77,0.3)' },
+  logoutText: { color: '#ff4d4d', fontSize: 16, fontWeight: '600' },
 });
