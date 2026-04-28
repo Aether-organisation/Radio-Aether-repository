@@ -35,7 +35,7 @@ export const PlayerScreen = () => {
 
   // Entrance animation when station loads
   useEffect(() => {
-    if (currentStation) {
+    if (currentStation && !loading) {
       setImgError(false);
       contentFade.setValue(0);
       logoScale.setValue(0.85);
@@ -44,7 +44,7 @@ export const PlayerScreen = () => {
         Animated.spring(logoScale,   { toValue: 1, tension: 50,   friction: 8, useNativeDriver: true }),
       ]).start();
     }
-  }, [currentStation?.id]);
+  }, [currentStation?.id, loading]);
 
   const handlePlayToggle = () => {
     Animated.sequence([
