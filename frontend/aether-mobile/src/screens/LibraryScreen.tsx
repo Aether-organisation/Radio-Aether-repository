@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity,
+  View, Text, FlatList, TouchableOpacity, ScrollView,
   StyleSheet, Animated, Image, Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -171,7 +171,10 @@ export const LibraryScreen = () => {
 
   // ── Vista principal de biblioteca ─────────────────────────────────────────
   const renderLibrary = () => (
-    <>
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.libraryScrollContent}
+    >
       <Animated.View style={[styles.header, { transform: [{ translateY: headerSlide }] }]}>
         <Text style={styles.appName}>AETHER</Text>
         <Text style={styles.title}>Biblioteca</Text>
@@ -215,7 +218,7 @@ export const LibraryScreen = () => {
           />
         ))
       )}
-    </>
+    </ScrollView>
   );
 
   // ── Vista de favoritos ────────────────────────────────────────────────────
@@ -480,5 +483,8 @@ const styles = StyleSheet.create({
     color: SUBTEXT,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  libraryScrollContent: {
+    paddingBottom: 120,
   },
 });
