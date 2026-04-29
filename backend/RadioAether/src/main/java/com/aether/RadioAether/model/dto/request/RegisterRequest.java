@@ -13,5 +13,7 @@ public class RegisterRequest {
     private String nombre;
     private String email;
     private String password;
+    /** The 6-digit code the user received by email. Null during initiation phase. */
+    private String verificationCode;
 }
 

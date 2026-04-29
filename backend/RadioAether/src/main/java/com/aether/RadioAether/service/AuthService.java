@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
  * Authentication service
  * @author prorix
  * @author mahoramas
- * @version 1.0.1
+ * @version 1.1.0
  */
 @Service
 @RequiredArgsConstructor
@@ -35,17 +35,42 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmailVerificationService emailVerificationService;
 
+    /**
+     * Initiates registration: validates uniqueness, sends the verification email
+     * and returns without creating the user yet.
+     */
+    public void initiateRegister(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Error: El email ya está registrado.");
+        }
 
+        if (userRepository.existsByNombre(request.getNombre())) {
+            throw new RuntimeException("Error: El nombre de usuario ya está en uso.");
+        }
+
+        emailVerificationService.sendVerificationCode(request.getEmail());
+    }
+
+    /**
+     * Completes registration after the user has verified their email code.
+     */
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Error: El email ya está registrado.");
         }
-        
+
         if (userRepository.existsByNombre(request.getNombre())) {
             throw new RuntimeException("Error: El nombre de usuario ya está en uso.");
         }
-        
+
+        // Confirm the code was validated (marked as verified)
+        boolean codeOk = emailVerificationService.verifyCode(request.getEmail(), request.getVerificationCode());
+        if (!codeOk) {
+            throw new RuntimeException("Error: Código de verificación inválido o caducado.");
+        }
+
         Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new RuntimeException("Error: Role not found."));
 
@@ -59,8 +84,9 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
+        emailVerificationService.deleteCode(request.getEmail());
+
         String jwtToken = jwtService.generateToken(user);
-        
         return AuthResponse.builder().token(jwtToken).surveyCompleted(user.isSurveyCompleted()).build();
     }
 
@@ -73,7 +99,6 @@ public class AuthService {
                 .orElseThrow();
 
         String jwtToken = jwtService.generateToken(user);
-        
         return AuthResponse.builder().token(jwtToken).surveyCompleted(user.isSurveyCompleted()).build();
     }
 }

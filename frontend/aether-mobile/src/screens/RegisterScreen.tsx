@@ -4,7 +4,6 @@ import {
   Animated, Easing, KeyboardAvoidingView, Platform,
   ActivityIndicator, ScrollView,
 } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 import api from '../api/axios';
 import { Colors, Radius } from '../theme/theme';
 
@@ -93,14 +92,8 @@ export const RegisterScreen = ({ navigation }: any) => {
     if (!validateFields()) return;
     setLoading(true);
     try {
-      const response = await api.post('/auth/register', { nombre, email, password });
-      await SecureStore.setItemAsync('jwt_token', response.data.token);
-      await SecureStore.setItemAsync('user_name', nombre);
-      if (!response.data.surveyCompleted) {
-        navigation.replace('Survey');
-      } else {
-        navigation.replace('MainTabs');
-      }
+      await api.post('/auth/initiate-register', { nombre, email, password });
+      navigation.navigate('VerifyEmail', { nombre, email, password });
     } catch (error: any) {
       const errorMessage = (
         error.response?.data?.message ||
@@ -124,8 +117,10 @@ export const RegisterScreen = ({ navigation }: any) => {
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.6] });
   const glowScale   = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] });
 
+  const Container = Platform.OS === 'ios' ? KeyboardAvoidingView : View;
+
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <Container style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Animated.View style={[styles.glow, { opacity: glowOpacity, transform: [{ scale: glowScale }] }]} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
@@ -232,7 +227,7 @@ export const RegisterScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </Container>
   );
 };
 
@@ -291,11 +286,6 @@ const styles = StyleSheet.create({
   },
   inputWrapFocused: {
     borderColor: Colors.cyan,
-    shadowColor: Colors.cyan,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
   },
   inputWrapError: {
     borderColor: Colors.textError,

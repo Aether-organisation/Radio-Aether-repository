@@ -16,6 +16,7 @@ import { LibraryScreen } from './src/screens/LibraryScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { SurveyScreen }  from './src/screens/SurveyScreen';
 import { PlaylistDetailScreen } from './src/screens/PlaylistDetailScreen';
+import { VerifyEmailScreen } from './src/screens/VerifyEmailScreen';
 import { MiniPlayer }    from './src/components/MiniPlayer';
 
 import { RootStackParamList, RootTabParamList } from './src/types/navigation';
@@ -81,6 +82,7 @@ export default function App() {
               <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="Login"    component={LoginScreen}    />
                 <Stack.Screen name="Register" component={RegisterScreen} />
+                <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
                 <Stack.Screen name="Survey"   component={SurveyScreen}   />
                 <Stack.Screen name="Player"   component={PlayerScreen}   />
                 <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />

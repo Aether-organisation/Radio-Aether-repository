@@ -59,8 +59,10 @@ export const LoginScreen = ({ navigation }: any) => {
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.6] });
   const glowScale   = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] });
 
+  const Container = Platform.OS === 'ios' ? KeyboardAvoidingView : View;
+
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <Container style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Animated.View style={[styles.glow, { opacity: glowOpacity, transform: [{ scale: glowScale }] }]} />
 
       <Animated.View style={[styles.content, { opacity: contentFade, transform: [{ translateY: contentSlide }] }]}>
@@ -119,7 +121,7 @@ export const LoginScreen = ({ navigation }: any) => {
           </Text>
         </TouchableOpacity>
       </Animated.View>
-    </KeyboardAvoidingView>
+    </Container>
   );
 };
 
@@ -174,11 +176,6 @@ const styles = StyleSheet.create({
   },
   inputWrapFocused: {
     borderColor: Colors.cyan,
-    shadowColor: Colors.cyan,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
   },
   input: {
     color: Colors.textPrimary,
