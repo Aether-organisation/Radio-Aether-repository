@@ -1,4 +1,4 @@
-export const Colors = {
+export const DarkColors = {
   // Backgrounds
   void:           '#09090F',
   surface:        '#111118',
@@ -20,6 +20,32 @@ export const Colors = {
   textTertiary:   'rgba(255,255,255,0.35)',
   textError:      '#FF5C5C',
 };
+
+export const LightColors = {
+  // Backgrounds
+  void:           '#F9F9FB',
+  surface:        '#FFFFFF',
+  surfaceGlass:   'rgba(0,0,0,0.03)',
+  surfaceBorder:  'rgba(0,0,0,0.08)',
+  surfaceActive:  'rgba(69,162,158,0.07)',
+
+  // Accents
+  cyan:           '#1F9D93',
+  cyanMuted:      '#45A29E',
+  cyanGlow:       'rgba(31,157,147,0.15)',
+  aiPurple:       '#6A1B9A',
+  aiPurpleGlow:   'rgba(106,27,154,0.15)',
+  favorite:       '#E91E63',
+
+  // Text
+  textPrimary:    '#1A1B22',
+  textSecondary:  '#6B6D7A',
+  textTertiary:   'rgba(0,0,0,0.35)',
+  textError:      '#D32F2F',
+};
+
+// Fallback for retro-compatibility (screens that have not yet migrated to useTheme hook)
+export const Colors = DarkColors;
 
 export const Radius = {
   sm:   8,

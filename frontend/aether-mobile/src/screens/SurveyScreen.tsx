@@ -1,3 +1,4 @@
+import { useTheme } from '../contexts/ThemeContext';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
@@ -394,15 +395,13 @@ export const SurveyScreen = () => {
 };
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
-const ACCENT      = '#646cff';
-const ACCENT_DIM  = 'rgba(100,108,255,0.15)';
 const BG          = '#0E0E1A';
 const SURFACE     = '#16162A';
 const BORDER      = '#2D2D4A';
 const TEXT        = '#FFFFFF';
 const SUBTEXT     = '#9399B2';
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: BG,
@@ -440,7 +439,7 @@ const styles = StyleSheet.create({
   progressDotActive: {
     width: 28,
     borderRadius: 4,
-    backgroundColor: ACCENT,
+    backgroundColor: colors.cyan,
   },
 
   // ── Welcome ─────────────────────────────────────────────────────────────
@@ -500,8 +499,8 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
   },
   genderCardActive: {
-    borderColor: ACCENT,
-    backgroundColor: ACCENT_DIM,
+    borderColor: colors.cyan,
+    backgroundColor: colors.cyanGlow,
   },
   genderEmoji: {
     fontSize: 28,
@@ -533,7 +532,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: ACCENT,
+    backgroundColor: colors.cyan,
   },
   transitionSub: {
     fontSize: 15,
@@ -563,8 +562,8 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
   },
   genreChipActive: {
-    backgroundColor: ACCENT_DIM,
-    borderColor: ACCENT,
+    backgroundColor: colors.cyanGlow,
+    borderColor: colors.cyan,
   },
   genreEmoji: {
     fontSize: 16,
@@ -580,7 +579,7 @@ const styles = StyleSheet.create({
   },
   selectedCount: {
     textAlign: 'center',
-    color: ACCENT,
+    color: colors.cyan,
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 14,
@@ -588,7 +587,7 @@ const styles = StyleSheet.create({
 
   // ── Buttons ──────────────────────────────────────────────────────────────
   primaryBtn: {
-    backgroundColor: ACCENT,
+    backgroundColor: colors.cyan,
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
@@ -617,11 +616,11 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: ACCENT,
+    backgroundColor: colors.cyan,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 28,
-    shadowColor: ACCENT,
+    shadowColor: colors.cyan,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.55,
     shadowRadius: 20,

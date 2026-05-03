@@ -8,15 +8,124 @@ import * as SecureStore from 'expo-secure-store';
 import api from '../api/axios';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { usePlaylists } from '../contexts/PlaylistsContext';
-import { Colors, Radius } from '../theme/theme';
+import { Radius } from '../theme/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { RootStackParamList } from '../types/navigation';
 import { Ionicons } from '@expo/vector-icons';
+
+const getStyles = (colors: any) => StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.void,
+    justifyContent: 'center',
+  },
+  glow: {
+    position: 'absolute',
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: colors.aiPurple,
+    alignSelf: 'center',
+    top: '10%',
+  },
+  content: {
+    paddingHorizontal: 28,
+    gap: 16,
+  },
+  iconWrap: {
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  brand: {
+    gap: 6,
+  },
+  brandLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.cyan,
+    letterSpacing: 5,
+  },
+  brandTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
+  },
+  brandSub: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  emailHighlight: {
+    color: colors.cyan,
+    fontWeight: '600',
+  },
+  inputWrap: {
+    backgroundColor: colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    paddingHorizontal: 16,
+    height: 64,
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  inputWrapFocused: {
+    borderColor: colors.cyan,
+  },
+  codeInput: {
+    color: colors.textPrimary,
+    fontSize: 32,
+    fontWeight: '700',
+    letterSpacing: 12,
+  },
+  btn: {
+    backgroundColor: colors.cyan,
+    borderRadius: Radius.md,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  btnDisabled: {
+    opacity: 0.45,
+  },
+  btnText: {
+    color: colors.void,
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+  },
+  resendBtn: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  resendBtnDisabled: {
+    opacity: 0.4,
+  },
+  resendText: {
+    color: colors.cyan,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  link: {
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  linkText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+});
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VerifyEmail'>;
 
 const RESEND_COOLDOWN = 60; // seconds
 
 export const VerifyEmailScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const { nombre, email, password } = route.params;
 
   const [code, setCode]             = useState('');
@@ -115,7 +224,7 @@ export const VerifyEmailScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Icon */}
         <View style={styles.iconWrap}>
-          <Ionicons name="mail-open-outline" size={44} color={Colors.cyan} />
+          <Ionicons name="mail-open-outline" size={44} color={colors.cyan} />
         </View>
 
         <View style={styles.brand}>
@@ -132,7 +241,7 @@ export const VerifyEmailScreen: React.FC<Props> = ({ navigation, route }) => {
           <TextInput
             style={styles.codeInput}
             placeholder="000000"
-            placeholderTextColor={Colors.textTertiary}
+            placeholderTextColor={colors.textTertiary}
             value={code}
             onChangeText={t => setCode(t.replace(/\D/g, '').substring(0, 6))}
             keyboardType="number-pad"
@@ -153,7 +262,7 @@ export const VerifyEmailScreen: React.FC<Props> = ({ navigation, route }) => {
           activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator color={Colors.void} />
+            <ActivityIndicator color={colors.void} />
           ) : (
             <Text style={styles.btnText}>VERIFICAR</Text>
           )}
@@ -187,107 +296,4 @@ export const VerifyEmailScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.void,
-    justifyContent: 'center',
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    borderRadius: 170,
-    backgroundColor: Colors.aiPurple,
-    alignSelf: 'center',
-    top: '10%',
-  },
-  content: {
-    paddingHorizontal: 28,
-    gap: 16,
-  },
-  iconWrap: {
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  brand: {
-    gap: 6,
-  },
-  brandLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.cyan,
-    letterSpacing: 5,
-  },
-  brandTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  brandSub: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-  emailHighlight: {
-    color: Colors.cyan,
-    fontWeight: '600',
-  },
-  inputWrap: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-    paddingHorizontal: 16,
-    height: 64,
-    justifyContent: 'center',
-    marginTop: 4,
-  },
-  inputWrapFocused: {
-    borderColor: Colors.cyan,
-  },
-  codeInput: {
-    color: Colors.textPrimary,
-    fontSize: 32,
-    fontWeight: '700',
-    letterSpacing: 12,
-  },
-  btn: {
-    backgroundColor: Colors.cyan,
-    borderRadius: Radius.md,
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-  },
-  btnDisabled: {
-    opacity: 0.45,
-  },
-  btnText: {
-    color: Colors.void,
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-  },
-  resendBtn: {
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  resendBtnDisabled: {
-    opacity: 0.4,
-  },
-  resendText: {
-    color: Colors.cyan,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  link: {
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  linkText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-});
+

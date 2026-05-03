@@ -9,9 +9,43 @@ import { usePlaylists } from '../contexts/PlaylistsContext';
 import { useAudio } from '../contexts/AudioContext';
 import { RadioStation } from '../types';
 import { RootStackParamList } from '../types/navigation';
-import { Colors } from '../theme/theme';
+import { useTheme } from '../contexts/ThemeContext';
+
+const getStyles = (colors: any) => StyleSheet.create({
+  rootContainer: { flex: 1, backgroundColor: colors.void },
+  container: { flex: 1, backgroundColor: colors.void },
+  header: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20 },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  backText: { color: colors.cyan, fontSize: 14, fontWeight: '600' },
+  title: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, marginBottom: 4 },
+  subtitle: { fontSize: 14, color: colors.textSecondary },
+
+  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80, gap: 14 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
+  emptyText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
+  addBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cyan, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, gap: 8, marginTop: 8 },
+  addBtnText: { color: colors.void, fontSize: 14, fontWeight: '600' },
+
+  listContent: { paddingHorizontal: 20, paddingBottom: 120 },
+  separator: { height: 1, backgroundColor: colors.surfaceBorder, marginLeft: 66 },
+  addBtnOutline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 8, marginTop: 10 },
+  addBtnOutlineText: { color: colors.cyan, fontSize: 14, fontWeight: '600' },
+
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
+  rowLogo: { width: 48, height: 48, borderRadius: 10, marginRight: 12, backgroundColor: colors.surface },
+  rowLogoFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cyanGlow },
+  rowLogoFallbackText: { fontSize: 20, fontWeight: '700', color: colors.cyan },
+  rowInfo: { flex: 1, marginRight: 8 },
+  rowName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, marginBottom: 3 },
+  rowNameActive: { color: colors.cyan },
+  rowGenre: { fontSize: 12, color: colors.textSecondary },
+});
 
 export const PlaylistDetailScreen = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const route = useRoute<RouteProp<RootStackParamList, 'PlaylistDetail'>>();
   const navigation = useNavigation<any>();
   const { playlistId } = route.params;
@@ -48,7 +82,7 @@ export const PlaylistDetailScreen = () => {
   if (!playlist) {
     return (
       <View style={styles.rootContainer}>
-        <Text style={{color: Colors.textPrimary, textAlign: 'center', marginTop: 100}}>Lista no encontrada</Text>
+        <Text style={{color: colors.textPrimary, textAlign: 'center', marginTop: 100}}>Lista no encontrada</Text>
       </View>
     );
   }
@@ -104,9 +138,9 @@ export const PlaylistDetailScreen = () => {
           <Text style={[styles.rowName, isActive && styles.rowNameActive]} numberOfLines={1}>{station.name}</Text>
           {!!station.genre && <Text style={styles.rowGenre} numberOfLines={1}>{station.genre.split(',')[0].trim()}</Text>}
         </TouchableOpacity>
-        {isActive && <Ionicons name="musical-notes" size={14} color={Colors.cyan} style={{ marginRight: 8 }} />}
+        {isActive && <Ionicons name="musical-notes" size={14} color={colors.cyan} style={{ marginRight: 8 }} />}
         <TouchableOpacity onPress={() => handleRemove(station)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ padding: 4 }}>
-          <Ionicons name="trash-outline" size={20} color={Colors.textError} />
+          <Ionicons name="trash-outline" size={20} color={colors.textError} />
         </TouchableOpacity>
       </Animated.View>
     );
@@ -120,11 +154,11 @@ export const PlaylistDetailScreen = () => {
         <Animated.View style={[styles.header, { transform: [{ translateY: headerSlide }] }]}>
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={20} color={Colors.cyan} />
+              <Ionicons name="arrow-back" size={20} color={colors.cyan} />
               <Text style={styles.backText}>Biblioteca</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleDeletePlaylist}>
-              <Ionicons name="ellipsis-vertical" size={20} color={Colors.textSecondary} />
+              <Ionicons name="ellipsis-vertical" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <Text style={styles.title}>{playlist.name}</Text>
@@ -134,7 +168,7 @@ export const PlaylistDetailScreen = () => {
         {/* Content */}
         {playlist.stations.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="list-outline" size={64} color={Colors.surfaceBorder} />
+            <Ionicons name="list-outline" size={64} color={colors.surfaceBorder} />
             <Text style={styles.emptyTitle}>Lista vacía</Text>
             <Text style={styles.emptyText}>Aún no has añadido ninguna emisora.</Text>
             <TouchableOpacity style={styles.addBtn} onPress={handleAddStations}>
@@ -152,7 +186,7 @@ export const PlaylistDetailScreen = () => {
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListFooterComponent={
               <TouchableOpacity style={styles.addBtnOutline} onPress={handleAddStations}>
-                <Ionicons name="add-circle-outline" size={18} color={Colors.cyan} />
+                <Ionicons name="add-circle-outline" size={18} color={colors.cyan} />
                 <Text style={styles.addBtnOutlineText}>Añadir más emisoras</Text>
               </TouchableOpacity>
             }
@@ -163,33 +197,4 @@ export const PlaylistDetailScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  rootContainer: { flex: 1, backgroundColor: Colors.void },
-  container: { flex: 1, backgroundColor: Colors.void },
-  header: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  backText: { color: Colors.cyan, fontSize: 14, fontWeight: '600' },
-  title: { fontSize: 28, fontWeight: '800', color: Colors.textPrimary, marginBottom: 4 },
-  subtitle: { fontSize: 14, color: Colors.textSecondary },
 
-  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80, gap: 14 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: Colors.textPrimary },
-  emptyText: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center' },
-  addBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.cyan, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, gap: 8, marginTop: 8 },
-  addBtnText: { color: Colors.void, fontSize: 14, fontWeight: '600' },
-
-  listContent: { paddingHorizontal: 20, paddingBottom: 120 },
-  separator: { height: 1, backgroundColor: Colors.surfaceBorder, marginLeft: 66 },
-  addBtnOutline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 8, marginTop: 10 },
-  addBtnOutlineText: { color: Colors.cyan, fontSize: 14, fontWeight: '600' },
-
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
-  rowLogo: { width: 48, height: 48, borderRadius: 10, marginRight: 12, backgroundColor: Colors.surface },
-  rowLogoFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.cyanGlow },
-  rowLogoFallbackText: { fontSize: 20, fontWeight: '700', color: Colors.cyan },
-  rowInfo: { flex: 1, marginRight: 8 },
-  rowName: { fontSize: 15, fontWeight: '600', color: Colors.textPrimary, marginBottom: 3 },
-  rowNameActive: { color: Colors.cyan },
-  rowGenre: { fontSize: 12, color: Colors.textSecondary },
-});

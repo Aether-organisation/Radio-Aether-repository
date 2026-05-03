@@ -6,7 +6,99 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { RadioStation } from '../types';
 import { usePlaylists } from '../contexts/PlaylistsContext';
-import { Colors, Radius, Shadows } from '../theme/theme';
+import { Radius, Shadows } from '../theme/theme';
+import { useTheme } from '../contexts/ThemeContext';
+
+const getStyles = (colors: any) => StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  sheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    paddingHorizontal: 20,
+    paddingBottom: 36,
+    paddingTop: 12,
+    ...Shadows.card,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: Radius.full,
+    backgroundColor: colors.surfaceBorder,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  stationName: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 16,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: colors.surfaceBorder,
+    marginVertical: 8,
+  },
+  list: {
+    maxHeight: 240,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 13,
+  },
+  rowIcon: {
+    marginRight: 14,
+  },
+  rowText: {
+    flex: 1,
+    fontSize: 15,
+    color: colors.textPrimary,
+  },
+  createInput: {
+    flex: 1,
+    fontSize: 15,
+    color: colors.textPrimary,
+    paddingVertical: 0,
+  },
+  createBtn: {
+    marginLeft: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: Radius.sm,
+    backgroundColor: colors.cyan,
+  },
+  createBtnDisabled: {
+    opacity: 0.35,
+  },
+  createBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.void,
+  },
+  confirmedWrap: {
+    alignItems: 'center',
+    paddingVertical: 28,
+    gap: 12,
+  },
+  confirmedText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+});
 
 interface PlaylistPickerModalProps {
   visible: boolean;
@@ -19,6 +111,9 @@ export const PlaylistPickerModal: React.FC<PlaylistPickerModalProps> = ({
   station,
   onClose,
 }) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const { playlists, createPlaylist, addStationToPlaylist } = usePlaylists();
 
   const [showCreateInput, setShowCreateInput] = useState(false);
@@ -90,7 +185,7 @@ export const PlaylistPickerModal: React.FC<PlaylistPickerModalProps> = ({
 
         {confirmed ? (
           <View style={styles.confirmedWrap}>
-            <Ionicons name="checkmark-circle" size={32} color={Colors.cyan} />
+            <Ionicons name="checkmark-circle" size={32} color={colors.cyan} />
             <Text style={styles.confirmedText}>Añadida a la lista</Text>
           </View>
         ) : (
@@ -122,10 +217,10 @@ export const PlaylistPickerModal: React.FC<PlaylistPickerModalProps> = ({
                     activeOpacity={alreadyIn ? 1 : 0.7}
                     disabled={alreadyIn || loading}
                   >
-                    <Ionicons name="list" size={20} color={Colors.cyan} style={styles.rowIcon} />
+                    <Ionicons name="list" size={20} color={colors.cyan} style={styles.rowIcon} />
                     <Text style={styles.rowText} numberOfLines={1}>{playlist.name}</Text>
                     {alreadyIn && (
-                      <Ionicons name="checkmark-circle" size={20} color={Colors.cyan} />
+                      <Ionicons name="checkmark-circle" size={20} color={colors.cyan} />
                     )}
                   </TouchableOpacity>
                 );
@@ -137,11 +232,11 @@ export const PlaylistPickerModal: React.FC<PlaylistPickerModalProps> = ({
             {/* New playlist */}
             {showCreateInput ? (
               <View style={styles.row}>
-                <Ionicons name="add-circle-outline" size={20} color={Colors.cyan} style={styles.rowIcon} />
+                <Ionicons name="add-circle-outline" size={20} color={colors.cyan} style={styles.rowIcon} />
                 <TextInput
                   style={styles.createInput}
                   placeholder="Nombre de la lista..."
-                  placeholderTextColor={Colors.textTertiary}
+                  placeholderTextColor={colors.textTertiary}
                   value={inputValue}
                   onChangeText={setInputValue}
                   autoFocus
@@ -162,8 +257,8 @@ export const PlaylistPickerModal: React.FC<PlaylistPickerModalProps> = ({
                 onPress={() => setShowCreateInput(true)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="add-circle-outline" size={20} color={Colors.cyan} style={styles.rowIcon} />
-                <Text style={[styles.rowText, { color: Colors.cyan }]}>Nueva lista</Text>
+                <Ionicons name="add-circle-outline" size={20} color={colors.cyan} style={styles.rowIcon} />
+                <Text style={[styles.rowText, { color: colors.cyan }]}>Nueva lista</Text>
               </TouchableOpacity>
             )}
           </>
@@ -173,93 +268,4 @@ export const PlaylistPickerModal: React.FC<PlaylistPickerModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    paddingHorizontal: 20,
-    paddingBottom: 36,
-    paddingTop: 12,
-    ...Shadows.card,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.surfaceBorder,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  stationName: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 16,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: Colors.surfaceBorder,
-    marginVertical: 8,
-  },
-  list: {
-    maxHeight: 240,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 13,
-  },
-  rowIcon: {
-    marginRight: 14,
-  },
-  rowText: {
-    flex: 1,
-    fontSize: 15,
-    color: Colors.textPrimary,
-  },
-  createInput: {
-    flex: 1,
-    fontSize: 15,
-    color: Colors.textPrimary,
-    paddingVertical: 0,
-  },
-  createBtn: {
-    marginLeft: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.cyan,
-  },
-  createBtnDisabled: {
-    opacity: 0.35,
-  },
-  createBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.void,
-  },
-  confirmedWrap: {
-    alignItems: 'center',
-    paddingVertical: 28,
-    gap: 12,
-  },
-  confirmedText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
-});
+

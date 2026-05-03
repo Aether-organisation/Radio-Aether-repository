@@ -1,5 +1,5 @@
 # ── Etapa 1: build ────────────────────────────────────────────────────────────
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM public.ecr.aws/docker/library/maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
 # Cachea dependencias antes de copiar el código fuente
@@ -10,7 +10,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests -q
 
 # ── Etapa 2: runtime ──────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine
+FROM public.ecr.aws/docker/library/eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080

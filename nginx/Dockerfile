@@ -1,5 +1,5 @@
 # Etapa 1: Compilación de Angular
-FROM node:20-alpine AS builder
+FROM public.ecr.aws/docker/library/node:20-alpine AS builder
 WORKDIR /app
 # Copiamos solo lo necesario para instalar dependencias primero (cache)
 COPY frontend/aether-web/package.json ./
@@ -9,7 +9,7 @@ COPY frontend/aether-web/ .
 RUN npm run build
 
 # Etapa 2: Servidor Nginx
-FROM nginx:1.27-alpine AS final
+FROM public.ecr.aws/docker/library/nginx:1.27-alpine AS final
 
 RUN apk add --no-cache openssl && \
     mkdir -p /etc/nginx/ssl && \

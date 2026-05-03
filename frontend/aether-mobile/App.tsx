@@ -7,6 +7,8 @@ import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from './src/theme/theme';
 
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
+
 import { LoginScreen } from './src/screens/LoginScreen';
 import { RegisterScreen } from './src/screens/RegisterScreen';
 import { PlayerScreen } from './src/screens/PlayerScreen';
@@ -28,25 +30,27 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 function MainTabs() {
+  const { colors, isDark } = useTheme();
+
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.void }}>
+    <View style={{ flex: 1, backgroundColor: colors.void }}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: Colors.surface,
-            borderTopColor: Colors.surfaceBorder,
+            backgroundColor: colors.surface,
+            borderTopColor: colors.surfaceBorder,
             borderTopWidth: 1,
             height: 64,
             paddingBottom: 10,
             paddingTop: 6,
           },
-          tabBarActiveTintColor: Colors.cyan,
-          tabBarInactiveTintColor: Colors.textSecondary,
+          tabBarActiveTintColor: colors.cyan,
+          tabBarInactiveTintColor: colors.textSecondary,
           tabBarLabelStyle: { fontSize: 10, fontWeight: '600', letterSpacing: 0.3, marginTop: 2 },
           tabBarIcon: ({ color, size, focused }) => {
             if (route.name === 'AiTab') {
-              return <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={size} color={focused ? Colors.aiPurple : Colors.textSecondary} />;
+              return <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={size} color={focused ? colors.aiPurple : colors.textSecondary} />;
             }
             const icons: Record<string, { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }> = {
               HomeTab: { active: 'home', inactive: 'home-outline' },
@@ -71,14 +75,16 @@ function MainTabs() {
   );
 }
 
-export default function App() {
+function RootApp() {
+  const { colors, isDark } = useTheme();
+
   return (
     <AudioProvider>
       <FavoritesProvider>
         <PlaylistsProvider>
-          <View style={{ flex: 1, backgroundColor: Colors.void }}>
+          <View style={{ flex: 1, backgroundColor: colors.void }}>
             <NavigationContainer>
-              <StatusBar style="light" />
+              <StatusBar style={isDark ? "light" : "dark"} />
               <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={RegisterScreen} />
@@ -93,5 +99,13 @@ export default function App() {
         </PlaylistsProvider>
       </FavoritesProvider>
     </AudioProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <RootApp />
+    </ThemeProvider>
   );
 }

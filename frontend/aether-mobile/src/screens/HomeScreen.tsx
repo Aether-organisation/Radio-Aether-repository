@@ -18,7 +18,522 @@ import { saveHomeStations, getHomeStations } from '../db/database';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { StationCard } from '../components/StationCard';
-import { Colors, Radius } from '../theme/theme';
+import { Radius } from '../theme/theme';
+import { useTheme } from '../contexts/ThemeContext';
+
+const getStyles = (colors: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.void,
+  },
+  scrollContent: {
+    paddingBottom: 120,
+  },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    paddingTop: 56,
+    paddingBottom: 24,
+  },
+  appName: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.cyan,
+    letterSpacing: 5,
+    marginBottom: 8,
+  },
+  greeting: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  greetingSub: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  avatarBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+
+  // Sections
+  section: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 14,
+  },
+  sectionHeaderTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  refreshBtn: {
+    padding: 4,
+    borderRadius: Radius.sm,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  sectionIcon: {
+    fontSize: 18,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+
+  // Station card (skeleton only — real card is in StationCard.tsx)
+  card: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    backgroundColor: colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    overflow: 'hidden',
+  },
+  cardImageContainer: {
+    width: '100%',
+    height: 100,
+    position: 'relative',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  cardImageFallback: {
+    backgroundColor: 'rgba(102,252,241,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardImageFallbackText: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: colors.cyan,
+  },
+  playingBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: colors.cyan,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heartWrap: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+  },
+  cardBody: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingTop: 10,
+  },
+  cardName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  cardGenre: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  playBtnWrap: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+  },
+  playBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.cyan,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.cyan,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  playBtnActive: {
+    backgroundColor: colors.cyanMuted,
+  },
+
+  // Skeleton
+  skeletonCard: {
+    backgroundColor: colors.surface,
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 20,
+  },
+  skeletonImage: {
+    width: '100%',
+    height: 100,
+    backgroundColor: colors.surfaceBorder,
+  },
+  skeletonLine: {
+    marginHorizontal: 10,
+    marginTop: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.surfaceBorder,
+  },
+  skeletonLineShort: {
+    width: '50%',
+    marginTop: 8,
+  },
+
+  // Empty states
+  emptyBox: {
+    marginHorizontal: 20,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    backgroundColor: colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    alignItems: 'center',
+    gap: 10,
+  },
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.cyan,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: Radius.sm,
+    marginTop: 6,
+  },
+  retryBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
+  // Featured card overrides
+  cardFeatured: {
+    borderColor: '#F59E0B',
+    borderWidth: 1.5,
+  },
+  featuredBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 8,
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featuredBadgeText: {
+    fontSize: 12,
+  },
+
+  // ── AI Hero ───────────────────────────────────────────────────────────────
+  aiHero: {
+    marginHorizontal: 20,
+    marginBottom: 28,
+    backgroundColor: 'rgba(138,43,226,0.06)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(138,43,226,0.25)',
+    padding: 18,
+    gap: 14,
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+  },
+  aiBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.aiPurple,
+    letterSpacing: 1.5,
+  },
+  aiInput: {
+    backgroundColor: colors.void,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(138,43,226,0.20)',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: colors.textPrimary,
+    fontSize: 15,
+    lineHeight: 22,
+    minHeight: 68,
+  },
+  aiButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  aiSubmitBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: colors.aiPurple,
+    borderRadius: 12,
+    paddingVertical: 12,
+    shadowColor: colors.aiPurple,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  aiSubmitBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  aiContextBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: 'rgba(138,43,226,0.10)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(138,43,226,0.30)',
+    paddingVertical: 12,
+  },
+  aiContextBtnText: {
+    color: colors.aiPurple,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  aiBtnDisabled: {
+    opacity: 0.4,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  aiThinkingWrap: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  aiErrorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: 'rgba(255,92,92,0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,92,92,0.20)',
+  },
+  aiErrorText: {
+    flex: 1,
+    color: colors.textError,
+    fontSize: 13,
+  },
+  aiResponse: {
+    marginHorizontal: 20,
+    marginBottom: 28,
+    backgroundColor: 'rgba(138,43,226,0.05)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(138,43,226,0.20)',
+    borderLeftWidth: 3,
+    borderLeftColor: colors.aiPurple,
+    padding: 18,
+    gap: 10,
+  },
+  aiResponseSender: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  aiResponseDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.aiPurple,
+  },
+  aiResponseSenderText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.aiPurple,
+    letterSpacing: 0.5,
+  },
+  aiResponseTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    lineHeight: 26,
+  },
+  aiResponseDesc: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  aiResponseEmpty: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+  },
+
+  // ── ThinkingDots ──────────────────────────────────────────────────────────
+  thinkingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  thinkingLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.aiPurple,
+  },
+  aiSavePrompt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(100,108,255,0.1)',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: Radius.md,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(100,108,255,0.2)',
+  },
+  aiSavePromptText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    flex: 1,
+  },
+  aiSavePromptBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.cyan,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Radius.sm,
+    gap: 6,
+  },
+  aiSavePromptBtnText: {
+    color: colors.void,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: Radius.lg,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 8,
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 20,
+  },
+  modalInput: {
+    backgroundColor: colors.void,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: Radius.sm,
+    color: colors.textPrimary,
+    fontSize: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 24,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalCancelBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  modalCancelBtnText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalConfirmBtn: {
+    backgroundColor: colors.cyan,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: Radius.sm,
+  },
+  modalConfirmBtnText: {
+    color: colors.void,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+});
 
 const CARD_WIDTH = 160;
 const CARD_HEIGHT = 200;
@@ -42,6 +557,8 @@ const getGreeting = (name: string) => {
 // ─── ThinkingDots ─────────────────────────────────────────────────────────────
 
 const ThinkingDots: React.FC = () => {
+  const { colors } = useTheme();
+
   const dots = [
     useRef(new Animated.Value(0)).current,
     useRef(new Animated.Value(0)).current,
@@ -63,14 +580,14 @@ const ThinkingDots: React.FC = () => {
   }, []);
 
   return (
-    <View style={styles.thinkingRow}>
-      <Text style={styles.thinkingLabel}>Pensando</Text>
-      <View style={styles.dotsContainer}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textSecondary }}>Pensando</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, height: 12 }}>
         {dots.map((dot, i) => (
           <Animated.View
             key={i}
             style={[
-              styles.dot,
+              { width: 5, height: 5, borderRadius: 2.5, backgroundColor: colors.cyan },
               {
                 opacity: dot,
                 transform: [{
@@ -88,12 +605,17 @@ const ThinkingDots: React.FC = () => {
 // ─── Skeleton card ────────────────────────────────────────────────────────────
 
 const SkeletonCard: React.FC<{ pulse: Animated.Value }> = ({ pulse }) => {
+  const { colors } = useTheme();
+
   const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.55] });
   return (
-    <Animated.View style={[styles.card, styles.skeletonCard, { opacity }]}>
-      <View style={styles.skeletonImage} />
-      <View style={styles.skeletonLine} />
-      <View style={[styles.skeletonLine, styles.skeletonLineShort]} />
+    <Animated.View style={[
+      { width: 160, height: 200, backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.surfaceBorder, overflow: 'hidden' },
+      { opacity }
+    ]}>
+      <View style={{ width: '100%', height: 100, backgroundColor: colors.surfaceBorder, borderRadius: 12, margin: 12 }} />
+      <View style={{ height: 14, backgroundColor: colors.surfaceBorder, borderRadius: 4, marginHorizontal: 12, marginBottom: 8 }} />
+      <View style={{ height: 14, width: '60%', backgroundColor: colors.surfaceBorder, borderRadius: 4, marginHorizontal: 12 }} />
     </Animated.View>
   );
 };
@@ -105,27 +627,33 @@ const SectionHeader: React.FC<{
   title: string;
   onRefresh?: () => void;
   isLoading?: boolean;
-}> = ({ icon, title, onRefresh, isLoading }) => (
-  <View style={styles.sectionHeader}>
-    <View style={styles.sectionHeaderTitle}>
-      <Text style={styles.sectionIcon}>{icon}</Text>
-      <Text style={styles.sectionTitle}>{title}</Text>
+}> = ({ icon, title, onRefresh, isLoading }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 14 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={{ fontSize: 18 }}>{icon}</Text>
+        <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary }}>{title}</Text>
+      </View>
+      {onRefresh && (
+        <TouchableOpacity onPress={onRefresh} disabled={isLoading} style={{ padding: 4, borderRadius: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.surfaceBorder }}>
+          <Ionicons
+            name="refresh-outline"
+            size={18}
+            color={isLoading ? colors.textSecondary : colors.cyan}
+          />
+        </TouchableOpacity>
+      )}
     </View>
-    {onRefresh && (
-      <TouchableOpacity onPress={onRefresh} disabled={isLoading} style={styles.refreshBtn}>
-        <Ionicons
-          name="refresh-outline"
-          size={18}
-          color={isLoading ? Colors.textSecondary : Colors.cyan}
-        />
-      </TouchableOpacity>
-    )}
-  </View>
-);
+  );
+};
 
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export const HomeScreen: React.FC<HomeScreenProps> = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const navigation = useNavigation<any>();
   const { playStation, currentStation, unload } = useAudio();
   const { isOnline } = useNetworkStatus();
@@ -384,7 +912,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   // ────────────────────────────────────────────────────────────────────────────
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: Colors.void }}
+      style={{ flex: 1, backgroundColor: colors.void }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <OfflineBanner isOnline={isOnline} />
@@ -401,7 +929,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
             <Text style={styles.greetingSub}>{greeting.sub}</Text>
           </View>
           <TouchableOpacity style={styles.avatarBtn} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color={Colors.textSecondary} />
+            <Ionicons name="log-out-outline" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -410,7 +938,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
           {/* Badge */}
           <View style={styles.aiBadge}>
-            <Ionicons name="sparkles" size={11} color={Colors.aiPurple} />
+            <Ionicons name="sparkles" size={11} color={colors.aiPurple} />
             <Text style={styles.aiBadgeText}>AETHER IA</Text>
           </View>
 
@@ -418,7 +946,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
           <TextInput
             style={styles.aiInput}
             placeholder="¿Cómo estás ahora mismo?"
-            placeholderTextColor={Colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             value={moodText}
             onChangeText={setMoodText}
             multiline
@@ -444,7 +972,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
               disabled={ctxLoading || aiLoading}
               activeOpacity={0.8}
             >
-              <Ionicons name="location" size={14} color={Colors.aiPurple} />
+              <Ionicons name="location" size={14} color={colors.aiPurple} />
               <Text style={styles.aiContextBtnText}>Este momento</Text>
             </TouchableOpacity>
           </View>
@@ -460,7 +988,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
         {/* ── AI ERROR ── */}
         {!!aiError && !aiLoading && !ctxLoading && (
           <View style={styles.aiErrorBox}>
-            <Ionicons name="alert-circle-outline" size={16} color={Colors.textError} />
+            <Ionicons name="alert-circle-outline" size={16} color={colors.textError} />
             <Text style={styles.aiErrorText}>{aiError}</Text>
           </View>
         )}
@@ -553,12 +1081,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
           {nearestLoading ? renderSkeletons()
             : locationDenied ? (
               <View style={styles.emptyBox}>
-                <Ionicons name="location-outline" size={30} color={Colors.textSecondary} />
+                <Ionicons name="location-outline" size={30} color={colors.textSecondary} />
                 <Text style={styles.emptyText}>Necesitamos tu ubicación.{'\n'}No la guardamos. Sin drama.</Text>
               </View>
             ) : nearestStations.length === 0 ? (
               <View style={styles.emptyBox}>
-                <Ionicons name="radio-outline" size={30} color={Colors.textSecondary} />
+                <Ionicons name="radio-outline" size={30} color={colors.textSecondary} />
                 <Text style={styles.emptyText}>El éter está callado por aquí.</Text>
                 <TouchableOpacity style={styles.retryBtn} onPress={fetchNearest} activeOpacity={0.8}>
                   <Ionicons name="refresh" size={16} color="#fff" />
@@ -634,516 +1162,4 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.void,
-  },
-  scrollContent: {
-    paddingBottom: 120,
-  },
 
-  // Header
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingTop: 56,
-    paddingBottom: 24,
-  },
-  appName: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: Colors.cyan,
-    letterSpacing: 5,
-    marginBottom: 8,
-  },
-  greeting: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  greetingSub: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  avatarBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-  },
-
-  // Sections
-  section: {
-    marginBottom: 32,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 14,
-  },
-  sectionHeaderTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  refreshBtn: {
-    padding: 4,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-  },
-  sectionIcon: {
-    fontSize: 18,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  listContent: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-
-  // Station card (skeleton only — real card is in StationCard.tsx)
-  card: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-    overflow: 'hidden',
-  },
-  cardImageContainer: {
-    width: '100%',
-    height: 100,
-    position: 'relative',
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  cardImageFallback: {
-    backgroundColor: 'rgba(102,252,241,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardImageFallbackText: {
-    fontSize: 34,
-    fontWeight: '700',
-    color: Colors.cyan,
-  },
-  playingBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: Colors.cyan,
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heartWrap: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
-  },
-  cardBody: {
-    flex: 1,
-    paddingHorizontal: 10,
-    paddingTop: 10,
-  },
-  cardName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    lineHeight: 18,
-    marginBottom: 4,
-  },
-  cardGenre: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  playBtnWrap: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-  },
-  playBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.cyan,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: Colors.cyan,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  playBtnActive: {
-    backgroundColor: Colors.cyanMuted,
-  },
-
-  // Skeleton
-  skeletonCard: {
-    backgroundColor: Colors.surface,
-  },
-  skeletonRow: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 20,
-  },
-  skeletonImage: {
-    width: '100%',
-    height: 100,
-    backgroundColor: Colors.surfaceBorder,
-  },
-  skeletonLine: {
-    marginHorizontal: 10,
-    marginTop: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Colors.surfaceBorder,
-  },
-  skeletonLineShort: {
-    width: '50%',
-    marginTop: 8,
-  },
-
-  // Empty states
-  emptyBox: {
-    marginHorizontal: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 20,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-    alignItems: 'center',
-    gap: 10,
-  },
-  emptyText: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  retryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.cyan,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: Radius.sm,
-    marginTop: 6,
-  },
-  retryBtnText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-
-  // Featured card overrides
-  cardFeatured: {
-    borderColor: '#F59E0B',
-    borderWidth: 1.5,
-  },
-  featuredBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 8,
-    width: 22,
-    height: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featuredBadgeText: {
-    fontSize: 12,
-  },
-
-  // ── AI Hero ───────────────────────────────────────────────────────────────
-  aiHero: {
-    marginHorizontal: 20,
-    marginBottom: 28,
-    backgroundColor: 'rgba(138,43,226,0.06)',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(138,43,226,0.25)',
-    padding: 18,
-    gap: 14,
-  },
-  aiBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    alignSelf: 'flex-start',
-  },
-  aiBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: Colors.aiPurple,
-    letterSpacing: 1.5,
-  },
-  aiInput: {
-    backgroundColor: Colors.void,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(138,43,226,0.20)',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: Colors.textPrimary,
-    fontSize: 15,
-    lineHeight: 22,
-    minHeight: 68,
-  },
-  aiButtonsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  aiSubmitBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    backgroundColor: Colors.aiPurple,
-    borderRadius: 12,
-    paddingVertical: 12,
-    shadowColor: Colors.aiPurple,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  aiSubmitBtnText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  aiContextBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    backgroundColor: 'rgba(138,43,226,0.10)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(138,43,226,0.30)',
-    paddingVertical: 12,
-  },
-  aiContextBtnText: {
-    color: Colors.aiPurple,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  aiBtnDisabled: {
-    opacity: 0.4,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  aiThinkingWrap: {
-    alignItems: 'center',
-    paddingVertical: 8,
-    marginBottom: 16,
-  },
-  aiErrorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: 'rgba(255,92,92,0.08)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,92,92,0.20)',
-  },
-  aiErrorText: {
-    flex: 1,
-    color: Colors.textError,
-    fontSize: 13,
-  },
-  aiResponse: {
-    marginHorizontal: 20,
-    marginBottom: 28,
-    backgroundColor: 'rgba(138,43,226,0.05)',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(138,43,226,0.20)',
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.aiPurple,
-    padding: 18,
-    gap: 10,
-  },
-  aiResponseSender: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-  },
-  aiResponseDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: Colors.aiPurple,
-  },
-  aiResponseSenderText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.aiPurple,
-    letterSpacing: 0.5,
-  },
-  aiResponseTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    lineHeight: 26,
-  },
-  aiResponseDesc: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-  aiResponseEmpty: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-
-  // ── ThinkingDots ──────────────────────────────────────────────────────────
-  thinkingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  thinkingLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.aiPurple,
-  },
-  aiSavePrompt: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(100,108,255,0.1)',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: Radius.md,
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(100,108,255,0.2)',
-  },
-  aiSavePromptText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    flex: 1,
-  },
-  aiSavePromptBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.cyan,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: Radius.sm,
-    gap: 6,
-  },
-  aiSavePromptBtnText: {
-    color: Colors.void,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 8,
-  },
-  modalDesc: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 20,
-  },
-  modalInput: {
-    backgroundColor: Colors.void,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-    borderRadius: Radius.sm,
-    color: Colors.textPrimary,
-    fontSize: 15,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 24,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-  },
-  modalCancelBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  modalCancelBtnText: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  modalConfirmBtn: {
-    backgroundColor: Colors.cyan,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: Radius.sm,
-  },
-  modalConfirmBtnText: {
-    color: Colors.void,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});

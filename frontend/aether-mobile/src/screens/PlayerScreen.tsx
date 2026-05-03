@@ -6,10 +6,202 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
-import { Colors, Radius, Shadows } from '../theme/theme';
+import { Radius, Shadows } from '../theme/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { PlaylistPickerModal } from '../components/PlaylistPickerModal';
 
+const getStyles = (colors: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.void,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 32,
+    paddingTop: 20,
+  },
+
+  // ── Loading / empty ────────────────────────────────────────────────────────
+  tuningText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    letterSpacing: 1,
+    marginBottom: 16,
+  },
+  loadingText: {
+    color: colors.textSecondary,
+    marginTop: 16,
+    fontSize: 15,
+    letterSpacing: 0.5,
+  },
+  noStationTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  noStationSub: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+
+  // ── Logo ──────────────────────────────────────────────────────────────────
+  logoWrapper: {
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    marginBottom: 40,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: colors.surface,
+  },
+  logoFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(102,252,241,0.08)',
+  },
+  logoFallbackText: {
+    fontSize: 72,
+    fontWeight: '800',
+    color: colors.cyan,
+  },
+  glowRing: {
+    position: 'absolute',
+    width: 236,
+    height: 236,
+    borderRadius: 118,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  glowRingActive: {
+    borderColor: colors.cyanGlow,
+    shadowColor: colors.cyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+
+  // ── Info ──────────────────────────────────────────────────────────────────
+  infoSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+    width: '100%',
+  },
+  stationName: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 6,
+    lineHeight: 30,
+  },
+  genre: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    marginBottom: 14,
+    textTransform: 'capitalize',
+  },
+  livePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: Radius.full,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  liveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.textSecondary,
+  },
+  liveDotActive: {
+    backgroundColor: '#22c55e',
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  liveText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.textSecondary,
+    letterSpacing: 1.5,
+  },
+
+  // ── Error ─────────────────────────────────────────────────────────────────
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,77,77,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,77,77,0.3)',
+    borderRadius: Radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 20,
+    gap: 8,
+    width: '100%',
+  },
+  errorText: {
+    color: colors.textError,
+    fontSize: 13,
+    flex: 1,
+  },
+
+  // ── Controls ──────────────────────────────────────────────────────────────
+  controls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 32,
+  },
+  sideBtn: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playBtn: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.cyan,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.cyan,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  playBtnPaused: {
+    backgroundColor: colors.cyanMuted,
+    shadowOpacity: 0.2,
+  },
+});
+
 export const PlayerScreen = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const { currentStation, isPlaying, loading, locationStatus, togglePlayback, error } = useAudio();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [imgError, setImgError] = useState(false);
@@ -71,7 +263,7 @@ export const PlayerScreen = () => {
     return (
       <View style={styles.container}>
         <Text style={styles.tuningText}>Sintonizando el éter...</Text>
-        <ActivityIndicator size="large" color={Colors.cyan} />
+        <ActivityIndicator size="large" color={colors.cyan} />
         <Text style={styles.loadingText}>{locationStatus}</Text>
       </View>
     );
@@ -81,7 +273,7 @@ export const PlayerScreen = () => {
   if (!currentStation) {
     return (
       <View style={styles.container}>
-        <Ionicons name="radio-outline" size={80} color={Colors.surfaceBorder} />
+        <Ionicons name="radio-outline" size={80} color={colors.surfaceBorder} />
         <Text style={styles.noStationTitle}>Aquí no hay nada sonando.</Text>
         <Text style={styles.noStationSub}>Elige una emisora desde Ondas{'\n'}y vuelve aquí.</Text>
       </View>
@@ -128,7 +320,7 @@ export const PlayerScreen = () => {
           {/* Live pill */}
           <View style={styles.livePill}>
             <View style={[styles.liveDot, isPlaying && styles.liveDotActive]} />
-            <Text style={[styles.liveText, isPlaying && { color: Colors.cyan }]}>{isPlaying ? 'EN DIRECTO' : 'PAUSADO'}</Text>
+            <Text style={[styles.liveText, isPlaying && { color: colors.cyan }]}>{isPlaying ? 'EN DIRECTO' : 'PAUSADO'}</Text>
           </View>
         </View>
 
@@ -148,7 +340,7 @@ export const PlayerScreen = () => {
               <Ionicons
                 name={fav ? 'heart' : 'heart-outline'}
                 size={28}
-                color={fav ? Colors.favorite : Colors.textSecondary}
+                color={fav ? colors.favorite : colors.textSecondary}
               />
             </TouchableOpacity>
           </Animated.View>
@@ -171,7 +363,7 @@ export const PlayerScreen = () => {
 
           {/* Add to playlist */}
           <TouchableOpacity onPress={() => setPickerVisible(true)} style={styles.sideBtn}>
-            <Ionicons name="list-outline" size={26} color={Colors.textSecondary} />
+            <Ionicons name="list-outline" size={26} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -188,190 +380,4 @@ export const PlayerScreen = () => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.void,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 32,
-    paddingTop: 20,
-  },
 
-  // ── Loading / empty ────────────────────────────────────────────────────────
-  tuningText: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    letterSpacing: 1,
-    marginBottom: 16,
-  },
-  loadingText: {
-    color: Colors.textSecondary,
-    marginTop: 16,
-    fontSize: 15,
-    letterSpacing: 0.5,
-  },
-  noStationTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  noStationSub: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-
-  // ── Logo ──────────────────────────────────────────────────────────────────
-  logoWrapper: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    marginBottom: 40,
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logo: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: Colors.surface,
-  },
-  logoFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(102,252,241,0.08)',
-  },
-  logoFallbackText: {
-    fontSize: 72,
-    fontWeight: '800',
-    color: Colors.cyan,
-  },
-  glowRing: {
-    position: 'absolute',
-    width: 236,
-    height: 236,
-    borderRadius: 118,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  glowRingActive: {
-    borderColor: Colors.cyanGlow,
-    shadowColor: Colors.cyan,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 24,
-    elevation: 10,
-  },
-
-  // ── Info ──────────────────────────────────────────────────────────────────
-  infoSection: {
-    alignItems: 'center',
-    marginBottom: 32,
-    width: '100%',
-  },
-  stationName: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: 6,
-    lineHeight: 30,
-  },
-  genre: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    marginBottom: 14,
-    textTransform: 'capitalize',
-  },
-  livePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: Radius.full,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-  },
-  liveDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: Colors.textSecondary,
-  },
-  liveDotActive: {
-    backgroundColor: '#22c55e',
-    shadowColor: '#22c55e',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  liveText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.textSecondary,
-    letterSpacing: 1.5,
-  },
-
-  // ── Error ─────────────────────────────────────────────────────────────────
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,77,77,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,77,77,0.3)',
-    borderRadius: Radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 20,
-    gap: 8,
-    width: '100%',
-  },
-  errorText: {
-    color: Colors.textError,
-    fontSize: 13,
-    flex: 1,
-  },
-
-  // ── Controls ──────────────────────────────────────────────────────────────
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 32,
-  },
-  sideBtn: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.cyan,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Shadows.cyan,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  playBtnPaused: {
-    backgroundColor: Colors.cyanMuted,
-    shadowOpacity: 0.2,
-  },
-});

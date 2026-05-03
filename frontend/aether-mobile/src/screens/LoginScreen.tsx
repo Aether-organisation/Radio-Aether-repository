@@ -7,9 +7,105 @@ import * as SecureStore from 'expo-secure-store';
 import api from '../api/axios';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { usePlaylists } from '../contexts/PlaylistsContext';
-import { Colors, Radius } from '../theme/theme';
+import { Radius } from '../theme/theme';
+import { useTheme } from '../contexts/ThemeContext';
+
+const getStyles = (colors: any) => StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.void,
+    justifyContent: 'center',
+  },
+  glow: {
+    position: 'absolute',
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: colors.aiPurple,
+    alignSelf: 'center',
+    top: '10%',
+  },
+  content: {
+    paddingHorizontal: 28,
+    gap: 14,
+  },
+  brand: {
+    marginBottom: 12,
+  },
+  brandLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.cyan,
+    letterSpacing: 5,
+    marginBottom: 10,
+  },
+  brandTitle: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  brandSub: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  inputWrap: {
+    backgroundColor: colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    paddingHorizontal: 16,
+    height: 52,
+    justifyContent: 'center',
+  },
+  inputWrapFocused: {
+    borderColor: colors.cyan,
+  },
+  input: {
+    color: colors.textPrimary,
+    fontSize: 15,
+  },
+  btn: {
+    backgroundColor: colors.cyan,
+    borderRadius: Radius.md,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+    shadowColor: colors.cyan,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  btnDisabled: {
+    opacity: 0.6,
+  },
+  btnText: {
+    color: colors.void,
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+  },
+  link: {
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  linkText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  linkAccent: {
+    color: colors.cyan,
+    fontWeight: '600',
+  },
+});
 
 export const LoginScreen = ({ navigation }: any) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -76,7 +172,7 @@ export const LoginScreen = ({ navigation }: any) => {
           <TextInput
             style={styles.input}
             placeholder="Email"
-            placeholderTextColor={Colors.textTertiary}
+            placeholderTextColor={colors.textTertiary}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -92,7 +188,7 @@ export const LoginScreen = ({ navigation }: any) => {
           <TextInput
             style={styles.input}
             placeholder="Contraseña"
-            placeholderTextColor={Colors.textTertiary}
+            placeholderTextColor={colors.textTertiary}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -108,7 +204,7 @@ export const LoginScreen = ({ navigation }: any) => {
           activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator color={Colors.void} />
+            <ActivityIndicator color={colors.void} />
           ) : (
             <Text style={styles.btnText}>ENTRAR</Text>
           )}
@@ -125,94 +221,4 @@ export const LoginScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.void,
-    justifyContent: 'center',
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    borderRadius: 170,
-    backgroundColor: Colors.aiPurple,
-    alignSelf: 'center',
-    top: '10%',
-  },
-  content: {
-    paddingHorizontal: 28,
-    gap: 14,
-  },
-  brand: {
-    marginBottom: 12,
-  },
-  brandLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.cyan,
-    letterSpacing: 5,
-    marginBottom: 10,
-  },
-  brandTitle: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
-    marginBottom: 4,
-  },
-  brandSub: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  inputWrap: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-    paddingHorizontal: 16,
-    height: 52,
-    justifyContent: 'center',
-  },
-  inputWrapFocused: {
-    borderColor: Colors.cyan,
-  },
-  input: {
-    color: Colors.textPrimary,
-    fontSize: 15,
-  },
-  btn: {
-    backgroundColor: Colors.cyan,
-    borderRadius: Radius.md,
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-    shadowColor: Colors.cyan,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  btnText: {
-    color: Colors.void,
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-  },
-  link: {
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  linkText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  linkAccent: {
-    color: Colors.cyan,
-    fontWeight: '600',
-  },
-});
+

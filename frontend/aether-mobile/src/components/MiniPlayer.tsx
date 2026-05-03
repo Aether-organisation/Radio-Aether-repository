@@ -7,13 +7,80 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAudio } from '../contexts/AudioContext';
 import { useFavorites } from '../contexts/FavoritesContext';
-import { Colors, Radius } from '../theme/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { Radius } from '../theme/theme';
 import { PlaylistPickerModal } from './PlaylistPickerModal';
+
+const getStyles = (colors: any) => StyleSheet.create({
+  container: {
+    position: 'absolute',
+    bottom: 60,
+    left: 10,
+    right: 10,
+    backgroundColor: colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+    zIndex: 1000,
+    overflow: 'hidden',
+  },
+  topBorder: {
+    height: 1,
+    backgroundColor: colors.surfaceBorder,
+    borderRadius: 1,
+  },
+  inner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 10,
+  },
+  logo: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+  },
+  logoFallback: {
+    backgroundColor: colors.cyanGlow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoFallbackText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.cyan,
+  },
+  info: {
+    flex: 1,
+  },
+  stationName: {
+    color: colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  genre: {
+    color: colors.textSecondary,
+    fontSize: 12,
+  },
+  iconBtn: {
+    padding: 2,
+  },
+});
 
 export const MiniPlayer = () => {
   const { currentStation, isPlaying, togglePlayback } = useAudio();
   const { isFavorite, toggleFavorite } = useFavorites();
   const navigation = useNavigation<any>();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+  
   const [imgError, setImgError] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
 
@@ -95,7 +162,7 @@ export const MiniPlayer = () => {
           <Ionicons
             name={fav ? 'heart' : 'heart-outline'}
             size={20}
-            color={fav ? Colors.favorite : Colors.textSecondary}
+            color={fav ? colors.favorite : colors.textSecondary}
           />
         </TouchableOpacity>
 
@@ -104,7 +171,7 @@ export const MiniPlayer = () => {
           style={styles.iconBtn}
           hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
         >
-          <Ionicons name="list-outline" size={20} color={Colors.textSecondary} />
+          <Ionicons name="list-outline" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -115,7 +182,7 @@ export const MiniPlayer = () => {
           <Ionicons
             name={isPlaying ? 'pause-circle' : 'play-circle'}
             size={32}
-            color={Colors.cyan}
+            color={colors.cyan}
           />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -130,65 +197,4 @@ export const MiniPlayer = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 60,
-    left: 10,
-    right: 10,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-    zIndex: 1000,
-    overflow: 'hidden',
-  },
-  topBorder: {
-    height: 1,
-    backgroundColor: Colors.surfaceBorder,
-    borderRadius: 1,
-  },
-  inner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 10,
-  },
-  logo: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-  },
-  logoFallback: {
-    backgroundColor: 'rgba(102,252,241,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoFallbackText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.cyan,
-  },
-  info: {
-    flex: 1,
-  },
-  stationName: {
-    color: Colors.textPrimary,
-    fontWeight: '700',
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  genre: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-  },
-  iconBtn: {
-    padding: 2,
-  },
-});
+

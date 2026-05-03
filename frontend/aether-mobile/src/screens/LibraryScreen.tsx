@@ -11,7 +11,211 @@ import { useNavigation } from '@react-navigation/native';
 import { RadioStation } from '../types';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { OfflineBanner } from '../components/OfflineBanner';
-import { Colors } from '../theme/theme';
+import { useTheme } from '../contexts/ThemeContext';
+
+const getStyles = (colors: any) => StyleSheet.create({
+  rootContainer: {
+    flex: 1,
+    backgroundColor: colors.void,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: colors.void,
+  },
+
+  // Header
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 56,
+    paddingBottom: 20,
+  },
+  appName: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.cyan,
+    letterSpacing: 5,
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+
+  // Back button
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  backText: {
+    color: colors.cyan,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  // Section label
+  sectionLabel: {
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  sectionLabelText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.textSecondary,
+    letterSpacing: 2,
+  },
+
+  // List card (en vista biblioteca)
+  listCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 10,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    padding: 14,
+    gap: 14,
+  },
+  listCardIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  listCardEmoji: {
+    fontSize: 26,
+  },
+  listCardInfo: {
+    flex: 1,
+  },
+  listCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 3,
+  },
+  listCardDesc: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  listCardRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  listCardCount: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+
+  // Coming soon
+  comingSoonCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderStyle: 'dashed',
+    gap: 10,
+  },
+  comingSoonText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
+
+  // Favorites list
+  listContent: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 120,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: colors.surfaceBorder,
+    marginLeft: 66,
+  },
+
+  // Station row
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  rowLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    marginRight: 12,
+    backgroundColor: colors.surface,
+  },
+  rowLogoFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.cyanGlow,
+  },
+  rowLogoFallbackText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.cyan,
+  },
+  rowInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+  rowName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: 3,
+  },
+  rowNameActive: {
+    color: colors.cyan,
+  },
+  rowGenre: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  rowHeartBtn: {
+    padding: 4,
+  },
+
+  // Empty state
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 80,
+    gap: 14,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  libraryScrollContent: {
+    paddingBottom: 120,
+  },
+});
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +232,9 @@ interface StationRowProps {
 }
 
 const StationRow: React.FC<StationRowProps> = ({ station, isActive, onPlay, onRemove, enterAnim }) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const [imgError, setImgError] = React.useState(false);
   const heartScale = useRef(new Animated.Value(1)).current;
   const hasLogo = !!station.logoUrl && !imgError;
@@ -72,7 +279,7 @@ const StationRow: React.FC<StationRowProps> = ({ station, isActive, onPlay, onRe
       </TouchableOpacity>
 
       {isActive && (
-        <Ionicons name="musical-notes" size={14} color={ACCENT} style={{ marginRight: 8 }} />
+        <Ionicons name="musical-notes" size={14} color={colors.cyan} style={{ marginRight: 8 }} />
       )}
 
       <Animated.View style={{ transform: [{ scale: heartScale }] }}>
@@ -81,7 +288,7 @@ const StationRow: React.FC<StationRowProps> = ({ station, isActive, onPlay, onRe
           style={styles.rowHeartBtn}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="heart" size={20} color={Colors.favorite} />
+          <Ionicons name="heart" size={20} color={colors.favorite} />
         </TouchableOpacity>
       </Animated.View>
     </Animated.View>
@@ -101,6 +308,9 @@ interface ListCardProps {
 }
 
 const ListCard: React.FC<ListCardProps> = ({ icon, iconBg, title, description, count, onPress, enterAnim }) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const scale   = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] });
   const opacity = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
@@ -116,7 +326,7 @@ const ListCard: React.FC<ListCardProps> = ({ icon, iconBg, title, description, c
         </View>
         <View style={styles.listCardRight}>
           <Text style={styles.listCardCount}>{count}</Text>
-          <Ionicons name="chevron-forward" size={16} color={SUBTEXT} />
+          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -126,6 +336,9 @@ const ListCard: React.FC<ListCardProps> = ({ icon, iconBg, title, description, c
 // ─── LibraryScreen ────────────────────────────────────────────────────────────
 
 export const LibraryScreen = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   const { favorites, toggleFavorite } = useFavorites();
   const { playlists } = usePlaylists();
   const { playStation, currentStation } = useAudio();
@@ -202,7 +415,7 @@ export const LibraryScreen = () => {
 
       {playlists.length === 0 ? (
         <Animated.View style={[styles.comingSoonCard, { opacity: cardAnim }]}>
-          <Ionicons name="list" size={22} color={SUBTEXT} />
+          <Ionicons name="list" size={22} color={colors.textSecondary} />
           <Text style={styles.comingSoonText}>Aún no has creado listas</Text>
         </Animated.View>
       ) : (
@@ -227,7 +440,7 @@ export const LibraryScreen = () => {
     <>
       <Animated.View style={[styles.header, { transform: [{ translateY: headerSlide }] }]}>
         <TouchableOpacity onPress={() => navigateTo('library')} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={20} color={ACCENT} />
+          <Ionicons name="arrow-back" size={20} color={colors.cyan} />
           <Text style={styles.backText}>Biblioteca</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Mis Favoritas</Text>
@@ -279,213 +492,4 @@ export const LibraryScreen = () => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const ACCENT  = Colors.cyan;
-const BG      = Colors.void;
-const SURFACE = Colors.surface;
-const BORDER  = Colors.surfaceBorder;
-const TEXT    = Colors.textPrimary;
-const SUBTEXT = Colors.textSecondary;
 
-const styles = StyleSheet.create({
-  rootContainer: {
-    flex: 1,
-    backgroundColor: BG,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: BG,
-  },
-
-  // Header
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 56,
-    paddingBottom: 20,
-  },
-  appName: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: ACCENT,
-    letterSpacing: 5,
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: TEXT,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: SUBTEXT,
-  },
-
-  // Back button
-  backBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 12,
-  },
-  backText: {
-    color: ACCENT,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
-  // Section label
-  sectionLabel: {
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-  sectionLabelText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: SUBTEXT,
-    letterSpacing: 2,
-  },
-
-  // List card (en vista biblioteca)
-  listCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 20,
-    marginBottom: 10,
-    backgroundColor: SURFACE,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-    padding: 14,
-    gap: 14,
-  },
-  listCardIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  listCardEmoji: {
-    fontSize: 26,
-  },
-  listCardInfo: {
-    flex: 1,
-  },
-  listCardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: TEXT,
-    marginBottom: 3,
-  },
-  listCardDesc: {
-    fontSize: 12,
-    color: SUBTEXT,
-  },
-  listCardRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  listCardCount: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: SUBTEXT,
-  },
-
-  // Coming soon
-  comingSoonCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 20,
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderStyle: 'dashed',
-    gap: 10,
-  },
-  comingSoonText: {
-    color: SUBTEXT,
-    fontSize: 14,
-  },
-
-  // Favorites list
-  listContent: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 120,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: BORDER,
-    marginLeft: 66,
-  },
-
-  // Station row
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  rowLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    marginRight: 12,
-    backgroundColor: SURFACE,
-  },
-  rowLogoFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.cyanGlow,
-  },
-  rowLogoFallbackText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: ACCENT,
-  },
-  rowInfo: {
-    flex: 1,
-    marginRight: 8,
-  },
-  rowName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: TEXT,
-    marginBottom: 3,
-  },
-  rowNameActive: {
-    color: ACCENT,
-  },
-  rowGenre: {
-    fontSize: 12,
-    color: SUBTEXT,
-  },
-  rowHeartBtn: {
-    padding: 4,
-  },
-
-  // Empty state
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 80,
-    gap: 14,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: TEXT,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: SUBTEXT,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  libraryScrollContent: {
-    paddingBottom: 120,
-  },
-});
