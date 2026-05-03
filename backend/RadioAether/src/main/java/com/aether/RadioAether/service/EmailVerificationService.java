@@ -12,6 +12,13 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
+/**
+     * Service for handling email verification.
+     *
+     * @author prorix
+     * @author mahoramas
+     * @version 1.0.0
+     */
 @Service
 @RequiredArgsConstructor
 public class EmailVerificationService {
@@ -27,6 +34,8 @@ public class EmailVerificationService {
     /**
      * Generates a 6-digit code, persists it (replacing any previous one for the
      * same email) and sends it to the user's inbox.
+     *
+     * @param email the target email address
      */
     @Transactional
     public void sendVerificationCode(String email) {
@@ -63,6 +72,10 @@ public class EmailVerificationService {
     /**
      * Returns true if the supplied code is valid and not expired for the given
      * email. On success, marks the slot as verified so it cannot be reused.
+     *
+     * @param email the target email
+     * @param code the verification code
+     * @return true if valid, false otherwise
      */
     @Transactional
     public boolean verifyCode(String email, String code) {
@@ -80,6 +93,8 @@ public class EmailVerificationService {
 
     /**
      * Cleans up the verification slot after registration is complete.
+     *
+     * @param email the target email
      */
     @Transactional
     public void deleteCode(String email) {

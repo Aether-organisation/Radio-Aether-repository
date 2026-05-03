@@ -41,6 +41,11 @@ public class AuthService {
      * Initiates registration: validates uniqueness, sends the verification email
      * and returns without creating the user yet.
      */
+    /**
+     * Initiates the registration process.
+     *
+     * @param request the registration details
+     */
     public void initiateRegister(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Error: El email ya está registrado.");
@@ -55,6 +60,12 @@ public class AuthService {
 
     /**
      * Completes registration after the user has verified their email code.
+     */
+    /**
+     * Completes registration.
+     *
+     * @param request the registration details
+     * @return an {@link AuthResponse} containing the JWT
      */
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -90,6 +101,12 @@ public class AuthService {
         return AuthResponse.builder().token(jwtToken).surveyCompleted(user.isSurveyCompleted()).build();
     }
 
+    /**
+     * Authenticates a user.
+     *
+     * @param request the login credentials
+     * @return an {@link AuthResponse} containing the JWT
+     */
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())

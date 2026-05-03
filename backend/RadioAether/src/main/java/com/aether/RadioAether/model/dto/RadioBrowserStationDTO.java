@@ -3,6 +3,13 @@ package com.aether.RadioAether.model.dto;
 import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Data Transfer Object representing a station returned by the Radio Browser API.
+ *
+ * @author prorix
+ * @author mahoramas
+ * @version 1.0.0
+ */
 @Data
 public class RadioBrowserStationDTO {
 

@@ -4,6 +4,16 @@ import com.aether.RadioAether.model.dto.request.LocationRequest;
 import com.aether.RadioAether.model.dto.response.StationDTO;
 import com.aether.RadioAether.model.dto.RadioBrowserStationDTO;
 import java.util.List;
+/**
+ * Contract for radio-station discovery operations.
+ *
+ * <p>Implementations must provide geographic proximity search, Haversine distance
+ * calculation and DTO mapping from the Radio Browser external format.
+ *
+ * @author prorix
+ * @author mahoramas
+ * @version 1.0.0
+ */
 public interface IRadioService {
 
     /**

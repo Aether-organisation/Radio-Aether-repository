@@ -16,6 +16,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Service responsible for AI-powered radio playlist generation.
+ *
+ * <p>Uses Google Gemini (via Spring AI) to derive music tags/genres from either a
+ * free-text mood description ({@link #getMoodPlaylist}) or a contextual snapshot
+ * combining weather, time-of-day and user preferences ({@link #getContextualPlaylist}).
+ * Radio Browser is then queried to resolve real station URLs for each tag.
+ *
+ * <p>A keyword-based fallback ({@link #getFallbackPlaylist}) is used whenever the
+ * Gemini API is unavailable so that the app remains functional.
+ *
+ * @author prorix
+ * @author mahoramas
+ * @version 1.1.0
+ */
 @Service
 public class AiService {
 
@@ -79,6 +94,14 @@ public class AiService {
     private final WeatherService weatherService;
     private final UserRepository userRepository;
 
+    /**
+     * Constructs the AI service.
+     *
+     * @param chatClientBuilder builder for creating the chat client
+     * @param radioBrowserClient client to query Radio Browser
+     * @param weatherService service to fetch weather data
+     * @param userRepository repository to access user data
+     */
     public AiService(ChatClient.Builder chatClientBuilder,
             RadioBrowserClient radioBrowserClient,
             WeatherService weatherService,
@@ -91,6 +114,12 @@ public class AiService {
 
     /**
      * Generates a mood-based playlist from a free-text description.
+     */
+    /**
+     * Generates a playlist based on a free-text mood.
+     *
+     * @param text the mood description
+     * @return a {@link MoodPlaylist} containing the tags and resolved stations
      */
     public MoodPlaylist getMoodPlaylist(String text) {
         try {
@@ -113,6 +142,14 @@ public class AiService {
      * - Current weather at the given coordinates
      * - Time-of-day slot derived from localTime
      * - Authenticated user's favourite genres (if available)
+     */
+    /**
+     * Generates a contextual playlist based on location and time.
+     *
+     * @param latitude the user's latitude
+     * @param longitude the user's longitude
+     * @param localTime the user's local time string
+     * @return a {@link MoodPlaylist} containing the context-aware stations
      */
     public MoodPlaylist getContextualPlaylist(double latitude, double longitude, String localTime) {
         try {

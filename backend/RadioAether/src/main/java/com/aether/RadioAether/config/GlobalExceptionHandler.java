@@ -16,6 +16,14 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Handles any {@link RuntimeException} thrown by a controller and returns a
+     * structured JSON error body with HTTP 400 Bad Request.
+     *
+     * @param ex the exception that was thrown
+     * @return a {@link ResponseEntity} containing a {@code message} field with the
+     *         exception message and HTTP status 400
+     */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
         String message = ex.getMessage();

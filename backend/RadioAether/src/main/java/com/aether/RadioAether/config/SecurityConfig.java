@@ -20,6 +20,15 @@ import com.aether.RadioAether.security.JwtAuthenticationFilter;
 import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Spring Security configuration.
+ *
+ * <p>Configures stateless JWT-based authentication and CORS settings.
+ *
+ * @author prorix
+ * @author mahoramas
+ * @version 1.0.0
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -28,6 +37,11 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
+    /**
+     * Configures Cross-Origin Resource Sharing (CORS) mappings.
+     *
+     * @return a {@link CorsConfigurationSource} with the allowed origins and methods
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -42,6 +56,13 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * Builds the main security filter chain.
+     *
+     * @param http the {@link HttpSecurity} object to configure
+     * @return the configured {@link SecurityFilterChain}
+     * @throws Exception if an error occurs during configuration
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

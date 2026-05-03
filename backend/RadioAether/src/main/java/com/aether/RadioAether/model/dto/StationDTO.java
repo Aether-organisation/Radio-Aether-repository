@@ -3,6 +3,13 @@ package com.aether.RadioAether.model.dto;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * Data Transfer Object representing a radio station in the application.
+ *
+ * @author prorix
+ * @author mahoramas
+ * @version 1.0.0
+ */
 @Data
 @Builder
 public class StationDTO {

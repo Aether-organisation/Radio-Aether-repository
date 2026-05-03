@@ -21,6 +21,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    /**
+     * Loads the {@link org.springframework.security.core.userdetails.UserDetails} for the
+     * user identified by the given e-mail address.
+     *
+     * @param email the e-mail used as the authentication username
+     * @return the matching {@link com.aether.RadioAether.model.entity.User} entity (which implements {@code UserDetails})
+     * @throws UsernameNotFoundException if no user exists with the given e-mail
+     */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)

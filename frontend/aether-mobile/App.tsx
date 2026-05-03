@@ -7,25 +7,25 @@ import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from './src/theme/theme';
 
-import { LoginScreen }   from './src/screens/LoginScreen';
+import { LoginScreen } from './src/screens/LoginScreen';
 import { RegisterScreen } from './src/screens/RegisterScreen';
-import { PlayerScreen }  from './src/screens/PlayerScreen';
-import { HomeScreen }    from './src/screens/HomeScreen';
-import { SearchScreen }  from './src/screens/SearchScreen';
+import { PlayerScreen } from './src/screens/PlayerScreen';
+import { HomeScreen } from './src/screens/HomeScreen';
+import { SearchScreen } from './src/screens/SearchScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
-import { SurveyScreen }  from './src/screens/SurveyScreen';
+import { SurveyScreen } from './src/screens/SurveyScreen';
 import { PlaylistDetailScreen } from './src/screens/PlaylistDetailScreen';
 import { VerifyEmailScreen } from './src/screens/VerifyEmailScreen';
-import { MiniPlayer }    from './src/components/MiniPlayer';
+import { MiniPlayer } from './src/components/MiniPlayer';
 
 import { RootStackParamList, RootTabParamList } from './src/types/navigation';
-import { AudioProvider }     from './src/contexts/AudioContext';
+import { AudioProvider } from './src/contexts/AudioContext';
 import { FavoritesProvider } from './src/contexts/FavoritesContext';
 import { PlaylistsProvider } from './src/contexts/PlaylistsContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab   = createBottomTabNavigator<RootTabParamList>();
+const Tab = createBottomTabNavigator<RootTabParamList>();
 
 function MainTabs() {
   return (
@@ -49,22 +49,22 @@ function MainTabs() {
               return <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={size} color={focused ? Colors.aiPurple : Colors.textSecondary} />;
             }
             const icons: Record<string, { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }> = {
-              HomeTab:       { active: 'home',           inactive: 'home-outline'          },
-              SearchTab:     { active: 'search',         inactive: 'search-outline'        },
-              LibraryTab:    { active: 'heart',          inactive: 'heart-outline'         },
-              ProfileTab:    { active: 'person',         inactive: 'person-outline'        },
-              NowPlayingTab: { active: 'musical-notes',  inactive: 'musical-notes-outline' },
+              HomeTab: { active: 'home', inactive: 'home-outline' },
+              SearchTab: { active: 'search', inactive: 'search-outline' },
+              LibraryTab: { active: 'heart', inactive: 'heart-outline' },
+              ProfileTab: { active: 'person', inactive: 'person-outline' },
+              NowPlayingTab: { active: 'musical-notes', inactive: 'musical-notes-outline' },
             };
             const { active, inactive } = icons[route.name] ?? { active: 'ellipse', inactive: 'ellipse-outline' };
             return <Ionicons name={focused ? active : inactive} size={size} color={color} />;
           },
         })}
       >
-        <Tab.Screen name="HomeTab"       component={HomeScreen}    options={{ title: 'Ondas'    }} />
-        <Tab.Screen name="SearchTab"     component={SearchScreen}  options={{ title: 'Buscar'   }} />
-        <Tab.Screen name="LibraryTab"    component={LibraryScreen} options={{ title: 'Guardadas' }} />
-        <Tab.Screen name="NowPlayingTab" component={PlayerScreen}  options={{ title: 'Sonando'  }} />
-        <Tab.Screen name="ProfileTab"    component={ProfileScreen} options={{ title: 'Yo'       }} />
+        <Tab.Screen name="HomeTab" component={HomeScreen} options={{ title: 'Ondas' }} />
+        <Tab.Screen name="SearchTab" component={SearchScreen} options={{ title: 'Buscar' }} />
+        <Tab.Screen name="LibraryTab" component={LibraryScreen} options={{ title: 'Guardadas' }} />
+        <Tab.Screen name="NowPlayingTab" component={PlayerScreen} options={{ title: 'Sonando' }} />
+        <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ title: 'Yo' }} />
       </Tab.Navigator>
       <MiniPlayer />
     </View>
@@ -80,13 +80,13 @@ export default function App() {
             <NavigationContainer>
               <StatusBar style="light" />
               <Stack.Navigator screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Login"    component={LoginScreen}    />
+                <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={RegisterScreen} />
                 <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
-                <Stack.Screen name="Survey"   component={SurveyScreen}   />
-                <Stack.Screen name="Player"   component={PlayerScreen}   />
+                <Stack.Screen name="Survey" component={SurveyScreen} />
+                <Stack.Screen name="Player" component={PlayerScreen} />
                 <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
-                <Stack.Screen name="MainTabs" component={MainTabs}       />
+                <Stack.Screen name="MainTabs" component={MainTabs} />
               </Stack.Navigator>
             </NavigationContainer>
           </View>

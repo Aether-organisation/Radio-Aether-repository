@@ -51,6 +51,13 @@ public class JwtService {
         return generateToken(new HashMap<>(), userDetails);
     }
 
+    /**
+     * Generates a signed JWT for the given user, embedding any additional claims.
+     *
+     * @param extraClaims additional key-value pairs to embed in the token payload
+     * @param userDetails the user for whom the token is generated
+     * @return the compact, signed JWT string
+     */
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
                 .setClaims(extraClaims)

@@ -32,35 +32,47 @@ import com.aether.RadioAether.model.entity.UserPreferences;
 @AllArgsConstructor
 public class User implements UserDetails{
 
+    /** The unique identifier of the user. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long idUsuario;
 
+    /** The user's display name. */
     private String nombre;
 
+    /** The user's unique e-mail address. */
     @Column(unique = true)
     private String email;
 
+    /** The hashed password. */
     private String password;
+
+    /** The timestamp when the user registered. */
     private LocalDateTime fechaRegistro;
     
+    /** Indicates whether the account is active. */
     private boolean activo;
 
+    /** Indicates whether the user has completed the onboarding survey. */
     @Column(name = "encuesta_completada", nullable = false)
     private boolean surveyCompleted = false;
 
+    /** The user's gender identity. */
     @Column(name = "genero")
     private String genero;
     
+    /** The user's music preferences. */
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "id_preferencias")
     private UserPreferences preferences;
     
+    /** The user's profile picture as a base64 encoded string. */
     @Lob
     @Column(name="foto_perfil")
     private String fotoPerfil;
 
+    /** The roles assigned to the user. */
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "USUARIOS_ROLES", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_rol"))
     private Set<Role> roles = new HashSet<>();

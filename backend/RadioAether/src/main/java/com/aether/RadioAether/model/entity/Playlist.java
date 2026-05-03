@@ -7,6 +7,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity representing a user-created playlist.
+ *
+ * @author prorix
+ * @author mahoramas
+ * @version 1.0.0
+ */
 @Data
 @Builder
 @NoArgsConstructor

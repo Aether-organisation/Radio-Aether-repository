@@ -21,6 +21,13 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private RoleRepository roleRepository;
+    /**
+     * Seeds the database with the default application roles ({@code ROLE_USER},
+     * {@code ROLE_ADMIN}, {@code ROLE_B2B}) if they do not already exist.
+     *
+     * @param args command-line arguments (not used)
+     * @throws Exception if a database error occurs during initialisation
+     */
     @Override
     public void run(String... args) throws Exception {
         if (roleRepository.findByName(RoleName.ROLE_USER).isEmpty()) {

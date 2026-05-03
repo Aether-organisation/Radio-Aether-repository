@@ -5,6 +5,13 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+     * Entity representing an email verification code.
+     *
+     * @author prorix
+     * @author mahoramas
+     * @version 1.0.0
+     */
 @Entity
 @Table(name = "EMAIL_VERIFICATION_CODES")
 @Data

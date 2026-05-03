@@ -14,9 +14,21 @@ import com.aether.RadioAether.model.dto.RadioBrowserStationDTO;
 import com.aether.RadioAether.model.entity.User;
 import com.aether.RadioAether.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Comparator;
+
+/**
+ * Service layer for radio-station discovery.
+ *
+ * <p>On startup, all Radio Browser stations that carry geographic metadata are
+ * fetched and cached in memory ({@link #initCache()}). Subsequent calls to
+ * {@link #findNearestStation(LocationRequest)} use this in-memory cache to avoid
+ * repeated network calls.
+ *
+ * @author prorix
+ * @author mahoramas
+ * @version 1.1.0
+ */
 @Service
 @RequiredArgsConstructor
 public class RadioService implements IRadioService {
@@ -27,6 +39,13 @@ public class RadioService implements IRadioService {
 
     private static final int EARTH_RADIUS = 6371;
 
+    /**
+     * Eagerly loads all geo-tagged stations from the Radio Browser API into the
+     * in-memory cache at application startup.
+     *
+     * <p>If the external API is unreachable the cache remains empty and the
+     * fallback station is used as a substitute.
+     */
     @PostConstruct
     public void initCache() {
         try {
@@ -41,6 +60,15 @@ public class RadioService implements IRadioService {
         }
     }
 
+    /**
+     * Returns the up to 10 stations whose geographic position is closest to the
+     * coordinates in {@code request}, using the Haversine formula for distance.
+     * Falls back to the hardcoded station if the cache is empty.
+     *
+     * @param request body containing {@code latitude} and {@code longitude}
+     * @return a sorted list of the nearest {@link StationDTO}s (at most 10 entries)
+     */
+    @Override
     public List<StationDTO> findNearestStation(final LocationRequest request) {
         if (!cachedStations.isEmpty()) {
             return cachedStations.stream()
@@ -55,7 +83,19 @@ public class RadioService implements IRadioService {
         return List.of(getFallbackStation());
     }
 
-    public double calculateHaversineDistance(final double startLat, final double startLong, final double endLat, final double endLong) {
+    /**
+     * Calculates the great-circle distance in kilometres between two points on
+     * Earth using the Haversine formula.
+     *
+     * @param startLat  latitude of the origin point (degrees)
+     * @param startLong longitude of the origin point (degrees)
+     * @param endLat    latitude of the destination point (degrees)
+     * @param endLong   longitude of the destination point (degrees)
+     * @return distance in kilometres
+     */
+    @Override
+    public double calculateHaversineDistance(final double startLat, final double startLong,
+                                              final double endLat, final double endLong) {
         double dLat = Math.toRadians(endLat - startLat);
         double dLong = Math.toRadians(endLong - startLong);
 
@@ -71,6 +111,13 @@ public class RadioService implements IRadioService {
         return EARTH_RADIUS * c;
     }
 
+    /**
+     * Maps a raw Radio Browser DTO to the application's internal {@link StationDTO}.
+     *
+     * @param station the raw Radio Browser station data
+     * @return the mapped {@link StationDTO}
+     */
+    @Override
     public StationDTO mapToDTO(final RadioBrowserStationDTO station) {
         return StationDTO.builder()
                 .id(station.getStationuuid())
@@ -85,13 +132,30 @@ public class RadioService implements IRadioService {
                 .build();
     }
 
+    /**
+     * Searches the Radio Browser API for stations matching the given query and filter type.
+     *
+     * @param query the search term (already formatted by the controller)
+     * @param type  one of {@code "name"}, {@code "genre"} or {@code "country"}
+     * @return a list of matching {@link StationDTO}s; never {@code null}
+     */
     public List<StationDTO> searchStations(String query, String type) {
         return radioBrowserClient.searchStations(query, type)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
-    
+
+    /**
+     * Returns personalised station recommendations for the given user.
+     *
+     * <p>Stations are filtered by the user's preferred genres (stored in
+     * {@code UserPreferences}). If no preferences are set or no matches are found,
+     * the first 10 cached stations are returned instead.
+     *
+     * @param email the authenticated user's e-mail address
+     * @return a list of up to 10 recommended {@link StationDTO}s
+     */
     public List<StationDTO> findForYou(String email) {
         List<String> preferredGenres = new ArrayList<>();
 
@@ -127,6 +191,11 @@ public class RadioService implements IRadioService {
                 : matched;
     }
 
+    /**
+     * Returns a hardcoded fallback station used when no real station data is available.
+     *
+     * @return the fallback {@link StationDTO}
+     */
     public StationDTO getFallbackStation() {
         return StationDTO.builder()
                 .id(UUID.randomUUID().toString())
@@ -137,4 +206,3 @@ public class RadioService implements IRadioService {
                 .build();
     }
 }
-

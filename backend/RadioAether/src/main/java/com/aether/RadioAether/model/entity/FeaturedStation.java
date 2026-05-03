@@ -14,6 +14,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Entity representing a featured station request.
+ *
+ * @author prorix
+ * @author mahoramas
+ * @version 1.0.0
+ */
 @Entity
 @Table(name = "DESTACADOS")
 @Data

@@ -7,6 +7,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.List;
 
+/**
+ * Represents a single track or recommendation in an AI-generated mood playlist.
+ *
+ * @author prorix
+ * @author mahoramas
+ * @version 1.0.0
+ */
 @Data
 @Builder
 @NoArgsConstructor
