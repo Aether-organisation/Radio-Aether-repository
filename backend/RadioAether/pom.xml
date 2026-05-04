@@ -135,6 +135,19 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <!-- Spring @Configuration infrastructure — no business logic, need Spring context to test -->
+                                <exclude>**/config/SecurityConfig.class</exclude>
+                                <exclude>**/config/ApplicationConfig.class</exclude>
+                                <exclude>**/config/OpenApiConfig.class</exclude>
+                                <exclude>**/config/RestClientConfig.class</exclude>
+                                <!-- Spring Boot entry point — not unit-testable -->
+                                <exclude>**/RadioAetherApplication.class</exclude>
+                                <!-- Spring Security servlet filter — integration-test territory -->
+                                <exclude>**/security/JwtAuthenticationFilter.class</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
