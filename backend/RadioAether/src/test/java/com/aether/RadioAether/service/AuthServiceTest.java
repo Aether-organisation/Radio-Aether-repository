@@ -182,6 +182,34 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("register: throws RuntimeException when username already exists")
+    void register_throwsWhenUsernameTaken() {
+        when(userRepository.existsByEmail("new@radio.com")).thenReturn(false);
+        when(userRepository.existsByNombre("NewUser")).thenReturn(true);
+
+        assertThatThrownBy(() -> authService.register(validRegisterRequest))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("nombre de usuario ya está en uso");
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("register: throws RuntimeException when ROLE_USER is not found in DB")
+    void register_throwsWhenRoleNotFound() {
+        when(userRepository.existsByEmail("new@radio.com")).thenReturn(false);
+        when(userRepository.existsByNombre("NewUser")).thenReturn(false);
+        when(emailVerificationService.verifyCode("new@radio.com", "123456")).thenReturn(true);
+        when(roleRepository.findByName(RoleName.ROLE_USER)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.register(validRegisterRequest))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Role not found");
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("register: newly created user is active by default")
     void register_userIsActiveByDefault() {
         when(userRepository.existsByEmail("new@radio.com")).thenReturn(false);

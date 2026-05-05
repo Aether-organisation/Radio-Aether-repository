@@ -6,12 +6,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -46,7 +49,11 @@ class WeatherServiceTest {
         mockResponseSpec = mock(RestClient.ResponseSpec.class);
 
         when(mockRestClient.get()).thenReturn(mockUriSpec);
-        when(mockUriSpec.uri(any(java.util.function.Function.class))).thenReturn(mockUriSpec);
+        when(mockUriSpec.uri(any(Function.class))).thenAnswer(invocation -> {
+            Function<UriBuilder, URI> fn = invocation.getArgument(0);
+            fn.apply(UriComponentsBuilder.newInstance());
+            return mockUriSpec;
+        });
         when(mockUriSpec.retrieve()).thenReturn(mockResponseSpec);
 
         // Inject mock via reflection since RestClient is created inside the constructor

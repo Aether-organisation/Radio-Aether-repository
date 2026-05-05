@@ -3,6 +3,8 @@ package com.aether.RadioAether.service;
 import com.aether.RadioAether.model.dto.RadioBrowserStationDTO;
 import com.aether.RadioAether.model.dto.request.LocationRequest;
 import com.aether.RadioAether.model.dto.response.StationDTO;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import com.aether.RadioAether.model.entity.User;
 import com.aether.RadioAether.model.entity.UserPreferences;
 import com.aether.RadioAether.repository.UserRepository;
@@ -32,6 +34,7 @@ import static org.mockito.Mockito.*;
  * @version 1.0.0
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class RadioServiceTest {
 
     @Mock
@@ -44,6 +47,49 @@ class RadioServiceTest {
     private RadioService radioService;
 
     private static final String EMAIL = "user@radio.com";
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // initCache
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("initCache: loads stations from RadioBrowserClient into the in-memory cache")
+    void initCache_loadsStations() {
+        RadioBrowserStationDTO raw = new RadioBrowserStationDTO();
+        raw.setStationuuid("init-1");
+        raw.setName("Init Station");
+        raw.setUrlResolved("https://stream.init.com/live.mp3");
+        raw.setGeoLat(40.4168);
+        raw.setGeoLong(-3.7038);
+
+        when(radioBrowserClient.getStationsWithGeo()).thenReturn(List.of(raw));
+
+        radioService.initCache();
+
+        LocationRequest request = new LocationRequest();
+        request.setLatitude(40.4168);
+        request.setLongitude(-3.7038);
+        List<StationDTO> result = radioService.findNearestStation(request);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo("init-1");
+    }
+
+    @Test
+    @DisplayName("initCache: handles null response from RadioBrowserClient without error")
+    void initCache_handlesNullResponse() {
+        when(radioBrowserClient.getStationsWithGeo()).thenReturn(null);
+
+        assertThatCode(() -> radioService.initCache()).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("initCache: catches and swallows exceptions when RadioBrowserClient throws")
+    void initCache_catchesExceptions() {
+        when(radioBrowserClient.getStationsWithGeo())
+                .thenThrow(new RuntimeException("Network error"));
+
+        assertThatCode(() -> radioService.initCache()).doesNotThrowAnyException();
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // calculateHaversineDistance
@@ -220,6 +266,71 @@ class RadioServiceTest {
     // ─────────────────────────────────────────────────────────────────────────
     // searchStations
     // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("findForYou: returns first 10 stations when user exists but preferences is null")
+    void findForYou_returnsFirstTenWhenPreferencesNull() throws Exception {
+        List<StationDTO> fakeCache = buildFakeStationsAroundMadrid(15);
+        injectCachedStations(fakeCache);
+
+        User user = User.builder().email(EMAIL).preferences(null).activo(true).build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        List<StationDTO> result = radioService.findForYou(EMAIL);
+
+        assertThat(result).hasSize(10);
+    }
+
+    @Test
+    @DisplayName("findForYou: returns first 10 stations when user has preferences but null favoriteGenres")
+    void findForYou_returnsFirstTenWhenFavoriteGenresNull() throws Exception {
+        List<StationDTO> fakeCache = buildFakeStationsAroundMadrid(15);
+        injectCachedStations(fakeCache);
+
+        UserPreferences prefs = new UserPreferences();
+        prefs.setFavoriteGenres(null);
+        User user = User.builder().email(EMAIL).preferences(prefs).activo(true).build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        List<StationDTO> result = radioService.findForYou(EMAIL);
+
+        assertThat(result).hasSize(10);
+    }
+
+    @Test
+    @DisplayName("findForYou: station with null genre is excluded from genre-filtered results")
+    void findForYou_stationWithNullGenreIsExcluded() throws Exception {
+        List<StationDTO> fakeCache = new ArrayList<>();
+        // Stations with null genre — should be filtered out
+        for (int i = 0; i < 5; i++) {
+            fakeCache.add(StationDTO.builder()
+                    .id("null-genre-" + i)
+                    .name("Null Genre Station " + i)
+                    .streamUrl("https://stream.null.com/" + i)
+                    .genre(null)
+                    .build());
+        }
+        // Stations with matching genre
+        for (int i = 0; i < 3; i++) {
+            fakeCache.add(StationDTO.builder()
+                    .id("jazz-" + i)
+                    .name("Jazz Station " + i)
+                    .streamUrl("https://stream.jazz.com/" + i)
+                    .genre("jazz")
+                    .build());
+        }
+        injectCachedStations(fakeCache);
+
+        UserPreferences prefs = new UserPreferences();
+        prefs.setFavoriteGenres(List.of("jazz"));
+        User user = User.builder().email(EMAIL).preferences(prefs).activo(true).build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        List<StationDTO> result = radioService.findForYou(EMAIL);
+
+        assertThat(result).hasSize(3);
+        assertThat(result).allMatch(s -> "jazz".equals(s.getGenre()));
+    }
 
     @Test
     @DisplayName("searchStations: delegates to RadioBrowserClient and maps results")

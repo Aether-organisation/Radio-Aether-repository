@@ -152,6 +152,17 @@ class RadioControllerTest {
         verify(radioService).searchStations("United Kingdom", "country");
     }
 
+    @Test
+    @DisplayName("searchStations: skips empty tokens when country query has multiple spaces")
+    void searchStations_skipsEmptyTokensInCountryQuery() {
+        // Double space produces an empty token in split result — the !word.isEmpty() false branch
+        when(radioService.searchStations("United States", "country")).thenReturn(List.of());
+
+        radioController.searchStations("united  states", "country");
+
+        verify(radioService).searchStations("United States", "country");
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // getForYou
     // ─────────────────────────────────────────────────────────────────────────

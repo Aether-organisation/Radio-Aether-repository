@@ -120,6 +120,43 @@ class FeaturedStationServiceTest {
     }
 
     @Test
+    @DisplayName("requestFeaturedStation: generates a stationId when an empty string is provided")
+    void requestFeaturedStation_generatesStationIdWhenEmptyString() {
+        FeaturedStationRequestDTO emptyIdRequest = new FeaturedStationRequestDTO(
+                "", "Radio EmptyId", "https://stream.test.com/live", null, "Jazz"
+        );
+        when(featuredStationRepository.save(any(FeaturedStation.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+        when(restTemplate.postForObject(anyString(), any(), eq(java.util.Map.class)))
+                .thenReturn(null);
+
+        featuredStationService.requestFeaturedStation(emptyIdRequest);
+
+        ArgumentCaptor<FeaturedStation> captor = ArgumentCaptor.forClass(FeaturedStation.class);
+        verify(featuredStationRepository).save(captor.capture());
+        assertThat(captor.getValue().getStationId()).isNotNull().isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("requestFeaturedStation: uses empty string for genre in Odoo payload when genre is null")
+    void requestFeaturedStation_usesEmptyGenreWhenNull() {
+        FeaturedStationRequestDTO noGenreRequest = new FeaturedStationRequestDTO(
+                "station-no-genre", "Radio NoGenre", "https://stream.test.com/live",
+                "https://logo.test.com/logo.png", null
+        );
+        when(featuredStationRepository.save(any(FeaturedStation.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+        when(restTemplate.postForObject(anyString(), any(), eq(java.util.Map.class)))
+                .thenReturn(null);
+
+        // Should not throw even with null genre
+        assertThatCode(() -> featuredStationService.requestFeaturedStation(noGenreRequest))
+                .doesNotThrowAnyException();
+
+        verify(featuredStationRepository).save(any(FeaturedStation.class));
+    }
+
+    @Test
     @DisplayName("requestFeaturedStation: station is saved as inactive by default")
     void requestFeaturedStation_stationSavedAsInactive() {
         when(featuredStationRepository.save(any(FeaturedStation.class)))

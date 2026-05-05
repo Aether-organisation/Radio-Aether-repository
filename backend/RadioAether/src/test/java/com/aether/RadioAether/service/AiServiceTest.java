@@ -17,7 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.HashSet;
@@ -438,5 +441,199 @@ class AiServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getTitle()).isEqualTo("Sin resultados");
         assertThat(result.getStations()).isEmpty();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // loadCurrentUserGenres — additional branch coverage
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getContextualPlaylist: uses empty genres when auth exists but isAuthenticated() is false")
+    @SuppressWarnings("unchecked")
+    void getContextualPlaylist_usesEmptyGenresWhenAuthNotAuthenticated() {
+        Authentication mockAuth = mock(Authentication.class);
+        when(mockAuth.isAuthenticated()).thenReturn(false);
+        SecurityContextHolder.getContext().setAuthentication(mockAuth);
+
+        when(callSpec.entity(MoodPlaylistResponse.class)).thenReturn(sampleAiResponse);
+        when(radioBrowserClient.getStationsByGenre(anyString())).thenReturn(List.of(sampleStation));
+
+        MoodPlaylist result = aiService.getContextualPlaylist(40.4, -3.7, "10:00");
+
+        assertThat(result).isNotNull();
+        verify(userRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    @DisplayName("getContextualPlaylist: uses empty genres when principal is 'anonymousUser'")
+    @SuppressWarnings("unchecked")
+    void getContextualPlaylist_usesEmptyGenresWhenAnonymousPrincipal() {
+        AnonymousAuthenticationToken anonAuth = new AnonymousAuthenticationToken(
+                "key", "anonymousUser",
+                List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+        SecurityContextHolder.getContext().setAuthentication(anonAuth);
+
+        when(callSpec.entity(MoodPlaylistResponse.class)).thenReturn(sampleAiResponse);
+        when(radioBrowserClient.getStationsByGenre(anyString())).thenReturn(List.of(sampleStation));
+
+        MoodPlaylist result = aiService.getContextualPlaylist(40.4, -3.7, "10:00");
+
+        assertThat(result).isNotNull();
+        verify(userRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    @DisplayName("getContextualPlaylist: uses empty genres when authenticated user is not found in DB")
+    @SuppressWarnings("unchecked")
+    void getContextualPlaylist_usesEmptyGenresWhenUserNotFoundInDB() {
+        User user = User.builder()
+                .email("missing@example.com")
+                .activo(true)
+                .roles(new HashSet<>())
+                .build();
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(user, null, List.of());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+        when(callSpec.entity(MoodPlaylistResponse.class)).thenReturn(sampleAiResponse);
+        when(radioBrowserClient.getStationsByGenre(anyString())).thenReturn(List.of(sampleStation));
+
+        MoodPlaylist result = aiService.getContextualPlaylist(40.4, -3.7, "10:00");
+
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    @DisplayName("getContextualPlaylist: uses empty genres when user has null preferences")
+    @SuppressWarnings("unchecked")
+    void getContextualPlaylist_usesEmptyGenresWhenPreferencesNull() {
+        User user = User.builder()
+                .email("noprefs@example.com")
+                .preferences(null)
+                .activo(true)
+                .roles(new HashSet<>())
+                .build();
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(user, null, List.of());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        when(userRepository.findByEmail("noprefs@example.com")).thenReturn(Optional.of(user));
+        when(callSpec.entity(MoodPlaylistResponse.class)).thenReturn(sampleAiResponse);
+        when(radioBrowserClient.getStationsByGenre(anyString())).thenReturn(List.of(sampleStation));
+
+        MoodPlaylist result = aiService.getContextualPlaylist(40.4, -3.7, "10:00");
+
+        assertThat(result).isNotNull();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // buildPlaylist — branch coverage for break conditions
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getMoodPlaylist: stops fetching genres when 10 or more stations are already collected")
+    @SuppressWarnings("unchecked")
+    void getMoodPlaylist_breaksGenresLoopWhenEnoughStations() {
+        MoodPlaylistResponse response = new MoodPlaylistResponse();
+        response.setPlaylistTitle("Big Playlist");
+        response.setPlaylistDescription("Lots of stations");
+        response.setGenres(List.of("pop", "rock")); // two genres
+        response.setTags(List.of("hits"));
+        response.setMood("energetic");
+
+        // First genre returns 10 stations — the loop should break before fetching "rock"
+        List<StationDTO> tenStations = List.of(
+                s("1"), s("2"), s("3"), s("4"), s("5"),
+                s("6"), s("7"), s("8"), s("9"), s("10"));
+        when(callSpec.entity(MoodPlaylistResponse.class)).thenReturn(response);
+        when(radioBrowserClient.getStationsByGenre("pop")).thenReturn(tenStations);
+
+        MoodPlaylist result = aiService.getMoodPlaylist("pop music");
+
+        assertThat(result.getStations()).isNotEmpty();
+        // "rock" should never be fetched due to break
+        verify(radioBrowserClient, never()).getStationsByGenre("rock");
+    }
+
+    @Test
+    @DisplayName("getMoodPlaylist: skips tags search when AI response has null tags")
+    @SuppressWarnings("unchecked")
+    void getMoodPlaylist_skipsTagsWhenTagsAreNull() {
+        MoodPlaylistResponse response = new MoodPlaylistResponse();
+        response.setPlaylistTitle("Minimal");
+        response.setPlaylistDescription("No tags");
+        response.setGenres(List.of("lofi")); // returns < 5 stations
+        response.setTags(null); // explicitly null
+        response.setMood("calm");
+
+        when(callSpec.entity(MoodPlaylistResponse.class)).thenReturn(response);
+        when(radioBrowserClient.getStationsByGenre("lofi")).thenReturn(List.of(sampleStation));
+
+        MoodPlaylist result = aiService.getMoodPlaylist("calm study");
+
+        assertThat(result).isNotNull();
+        // Only "lofi" is searched — no tag search since tags is null
+        verify(radioBrowserClient, times(1)).getStationsByGenre(anyString());
+    }
+
+    @Test
+    @DisplayName("getMoodPlaylist: stops fetching tags when 10 or more stations are already collected")
+    @SuppressWarnings("unchecked")
+    void getMoodPlaylist_breaksTagsLoopWhenEnoughStations() {
+        MoodPlaylistResponse response = new MoodPlaylistResponse();
+        response.setPlaylistTitle("Tag Playlist");
+        response.setPlaylistDescription("Tags driven");
+        response.setGenres(List.of("rare-genre")); // returns < 5 stations
+        response.setTags(List.of("pop", "rock"));  // two tags
+        response.setMood("mixed");
+
+        List<StationDTO> tenStations = List.of(
+                s("t1"), s("t2"), s("t3"), s("t4"), s("t5"),
+                s("t6"), s("t7"), s("t8"), s("t9"), s("t10"));
+
+        when(callSpec.entity(MoodPlaylistResponse.class)).thenReturn(response);
+        when(radioBrowserClient.getStationsByGenre("rare-genre")).thenReturn(List.of(sampleStation));
+        when(radioBrowserClient.getStationsByGenre("pop")).thenReturn(tenStations);
+
+        MoodPlaylist result = aiService.getMoodPlaylist("variety");
+
+        assertThat(result.getStations()).isNotEmpty();
+        // "rock" tag should not be fetched because break fires after "pop"
+        verify(radioBrowserClient, never()).getStationsByGenre("rock");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // getFallbackPlaylist — break condition coverage
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getFallbackPlaylist: stops fetching when 8 or more stations are already collected")
+    @SuppressWarnings("unchecked")
+    void getFallbackPlaylist_breaksLoopWhenEnoughStations() {
+        when(callSpec.entity(MoodPlaylistResponse.class))
+                .thenThrow(new RuntimeException("AI down"));
+
+        // "estudiar" → "lofi" tag ; "relax" → "chillout" tag — two distinct tags added
+        // First tag ("lofi") returns 8 stations → the loop breaks before fetching "chillout"
+        List<StationDTO> eightStations = List.of(
+                s("f1"), s("f2"), s("f3"), s("f4"),
+                s("f5"), s("f6"), s("f7"), s("f8"));
+        when(radioBrowserClient.getStationsByGenre("lofi")).thenReturn(eightStations);
+
+        MoodPlaylist result = aiService.getMoodPlaylist("estudiar y relax");
+
+        assertThat(result).isNotNull();
+        // "chillout" should never be fetched since "lofi" already hit the 8-station cap
+        verify(radioBrowserClient, never()).getStationsByGenre("chillout");
+    }
+
+    // Helper to build a unique StationDTO quickly
+    private StationDTO s(String id) {
+        return StationDTO.builder()
+                .id(id)
+                .name("Station " + id)
+                .streamUrl("https://stream.example.com/" + id + ".mp3")
+                .build();
     }
 }

@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.aether.RadioAether.model.entity.PlaylistStation;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -282,5 +284,41 @@ class PlaylistServiceTest {
                 .hasMessageContaining("Playlist not found or unauthorized");
 
         verify(playlistStationRepository, never()).deleteByPlaylistIdAndStationId(any(), any());
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // toDTO — non-empty stations list (lambda coverage)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getUserPlaylists: maps each PlaylistStation to PlaylistStationDTO correctly")
+    void getUserPlaylists_mapsStationsInsidePlaylist() {
+        PlaylistStation station = PlaylistStation.builder()
+                .id("ps-1")
+                .stationId("ext-station-1")
+                .stationName("Rock FM")
+                .streamUrl("https://stream.rock.com/live")
+                .logoUrl("https://logo.rock.com/img.png")
+                .genre("Rock")
+                .addedAt(LocalDateTime.now())
+                .build();
+
+        Playlist playlistWithStation = Playlist.builder()
+                .id(PLAYLIST_ID)
+                .name("Rock Hits")
+                .user(mockUser)
+                .createdAt(LocalDateTime.now())
+                .stations(new ArrayList<>(List.of(station)))
+                .build();
+
+        when(playlistRepository.findByUserEmailOrderByCreatedAtDesc(EMAIL))
+                .thenReturn(List.of(playlistWithStation));
+
+        List<PlaylistDTO> result = playlistService.getUserPlaylists(EMAIL);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getStations()).hasSize(1);
+        assertThat(result.get(0).getStations().get(0).getStationName()).isEqualTo("Rock FM");
+        assertThat(result.get(0).getStations().get(0).getGenre()).isEqualTo("Rock");
     }
 }
