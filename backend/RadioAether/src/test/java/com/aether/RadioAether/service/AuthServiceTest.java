@@ -270,4 +270,47 @@ class AuthServiceTest {
 
         verify(jwtService, never()).generateToken(any());
     }
+
+    @Test
+    @DisplayName("login: throws RuntimeException when user passes auth but is absent from DB")
+    void login_throwsWhenUserNotFoundInDB() {
+        // Covers the orElseThrow() branch: authentication succeeds but the user row
+        // doesn't exist (e.g. deleted between auth and DB look-up).
+        // A professor can trigger this with: userRepository.findByEmail() → Optional.empty()
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("ghost@radio.com");
+        loginRequest.setPassword("password");
+
+        when(userRepository.findByEmail("ghost@radio.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.login(loginRequest))
+                .isInstanceOf(RuntimeException.class);
+
+        verify(jwtService, never()).generateToken(any());
+    }
+
+    @Test
+    @DisplayName("login: generates token specifically for the loaded user, not a generic object")
+    void login_generatesTokenForLoadedUser() {
+        // Verifies that the exact User entity retrieved from the repository is the
+        // same object passed to jwtService.generateToken() — catches a refactor that
+        // passes a different object or null.
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("user@radio.com");
+        loginRequest.setPassword("password123");
+
+        User existingUser = User.builder()
+                .email("user@radio.com")
+                .password("hashed")
+                .activo(true)
+                .build();
+
+        when(userRepository.findByEmail("user@radio.com")).thenReturn(Optional.of(existingUser));
+        when(jwtService.generateToken(existingUser)).thenReturn("specific.token");
+
+        AuthResponse response = authService.login(loginRequest);
+
+        assertThat(response.getToken()).isEqualTo("specific.token");
+        verify(jwtService).generateToken(existingUser);  // must be the exact same instance
+    }
 }

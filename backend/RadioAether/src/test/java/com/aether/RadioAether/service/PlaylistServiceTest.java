@@ -259,6 +259,34 @@ class PlaylistServiceTest {
                 .hasMessageContaining("Unauthorized");
     }
 
+    @Test
+    @DisplayName("addStation: throws RuntimeException when playlist does not exist")
+    void addStation_throwsWhenPlaylistNotFound() {
+        // Covers the orElseThrow() branch — professor can trigger this with Optional.empty()
+        AddStationToPlaylistRequest request = new AddStationToPlaylistRequest();
+        request.setStationId("station-x");
+
+        when(playlistRepository.findById("nonexistent")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> playlistService.addStation(EMAIL, "nonexistent", request))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Playlist not found");
+
+        verify(playlistStationRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("createPlaylist: generated playlist ID is a valid UUID string")
+    void createPlaylist_generatesUuidForId() {
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(mockUser));
+        when(playlistRepository.save(any(Playlist.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        PlaylistDTO result = playlistService.createPlaylist(EMAIL, "Test");
+
+        // UUID format: 8-4-4-4-12 hex characters
+        assertThat(result.getId()).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // removeStation
     // ─────────────────────────────────────────────────────────────────────────

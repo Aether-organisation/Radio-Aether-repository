@@ -6,7 +6,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -160,5 +162,39 @@ class JwtServiceTest {
         String token1 = jwtService.generateToken(sampleUser);
         String token2 = jwtService.generateToken(otherUser);
         assertThat(token1).isNotEqualTo(token2);
+    }
+
+    @Test
+    @DisplayName("generateToken(Map, UserDetails): extra claims are present in the issued token")
+    void generateToken_withExtraClaims_embedsThemInToken() {
+        // Exercises the 2-argument overload directly.
+        // The 1-arg overload delegates to it with an empty map — this test ensures the
+        // extra-claim path is also covered and that extractUsername still works.
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", "admin");
+        claims.put("version", 2);
+
+        String token = jwtService.generateToken(claims, sampleUser);
+
+        assertThat(token).isNotBlank();
+        // Username must still be extractable
+        assertThat(jwtService.extractUsername(token)).isEqualTo("test@example.com");
+        // Token must be considered valid
+        assertThat(jwtService.isValid(token)).isTrue();
+    }
+
+    @Test
+    @DisplayName("isTokenValid: false when token is completely invalid (exception path in isValid)")
+    void isTokenValid_falseForCompletelyInvalidToken() {
+        // isValid() catches ANY exception and returns false.
+        // isTokenValid() calls extractUsername first, which will throw for garbage input —
+        // verifying the guard in isValid's catch block is the right approach here.
+        assertThat(jwtService.isValid("garbage.token.string")).isFalse();
+    }
+
+    @Test
+    @DisplayName("isValid: empty string is not a valid token")
+    void isValid_returnsFalseForEmptyString() {
+        assertThat(jwtService.isValid("")).isFalse();
     }
 }

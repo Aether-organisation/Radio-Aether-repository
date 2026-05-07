@@ -288,6 +288,38 @@ class AiServiceTest {
         assertThat(result).isNotNull();
     }
 
+    @Test
+    @DisplayName("getMoodPlaylist: null text does not throw NullPointerException")
+    @SuppressWarnings("unchecked")
+    void getMoodPlaylist_nullTextDoesNotThrowNpe() {
+        // If the AI call fails (likely with null input) the fallback runs with text=null.
+        // Before the fix, getFallbackPlaylist(null) threw NPE at text.toLowerCase().
+        // After the fix it safely treats null as empty string → defaults to "chill".
+        when(callSpec.entity(MoodPlaylistResponse.class))
+                .thenThrow(new RuntimeException("null user message"));
+        when(radioBrowserClient.getStationsByGenre("chill")).thenReturn(List.of(sampleStation));
+
+        MoodPlaylist result = aiService.getMoodPlaylist(null);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStations()).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("getMoodPlaylist: null AI entity response does not throw NullPointerException")
+    @SuppressWarnings("unchecked")
+    void getMoodPlaylist_nullAiResponseFallsBackGracefully() {
+        // Spring AI's .entity() can return null if JSON parsing fails entirely.
+        // buildPlaylist(null) would NPE at aiResponse.getGenres() without a null guard.
+        // The outer try/catch rescues this and calls getFallbackPlaylist instead.
+        when(callSpec.entity(MoodPlaylistResponse.class)).thenReturn(null);
+        when(radioBrowserClient.getStationsByGenre("chill")).thenReturn(List.of(sampleStation));
+
+        MoodPlaylist result = aiService.getMoodPlaylist("test");
+
+        assertThat(result).isNotNull();
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // getContextualPlaylist — resolveTimeSlot branches
     // ─────────────────────────────────────────────────────────────────────────

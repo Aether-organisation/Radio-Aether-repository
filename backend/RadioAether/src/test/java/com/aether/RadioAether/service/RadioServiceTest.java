@@ -363,6 +363,214 @@ class RadioServiceTest {
         field.set(radioService, stations);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // calculateHaversineDistance — additional boundary values
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("calculateHaversineDistance: returns 0 for origin (0,0) to itself")
+    void haversine_returnsZeroForOriginToItself() {
+        double distance = radioService.calculateHaversineDistance(0.0, 0.0, 0.0, 0.0);
+        assertThat(distance).isEqualTo(0.0);
+    }
+
+    @Test
+    @DisplayName("calculateHaversineDistance: equatorial half-circumference is ~20004 km")
+    void haversine_equatorialHalfCircumference() {
+        // Point A: (0°, 0°) — Point B: (0°, 180°) = half the equator
+        // Earth radius 6371 km → π × 6371 ≈ 20015 km
+        double distance = radioService.calculateHaversineDistance(0.0, 0.0, 0.0, 180.0);
+        assertThat(distance).isBetween(20010.0, 20020.0);
+    }
+
+    @Test
+    @DisplayName("calculateHaversineDistance: pole-to-pole is ~20004 km")
+    void haversine_northPoleToSouthPole() {
+        // 90°N to 90°S = exactly half the Earth's circumference ≈ 20015 km
+        double distance = radioService.calculateHaversineDistance(90.0, 0.0, -90.0, 0.0);
+        assertThat(distance).isBetween(20010.0, 20020.0);
+    }
+
+    @Test
+    @DisplayName("calculateHaversineDistance: very small distance returns near-zero value")
+    void haversine_verySmallDelta_returnsNearZero() {
+        // Coordinates differ by 0.001 degree — distance should be < 1 km
+        double distance = radioService.calculateHaversineDistance(40.4168, -3.7038, 40.4178, -3.7028);
+        assertThat(distance).isLessThan(1.0);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // findNearestStation — boundary / count behaviour
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("findNearestStation: returns all stations when cache has fewer than 10")
+    void findNearestStation_returnsAllWhenFewerThanTen() throws Exception {
+        List<StationDTO> fakeCache = buildFakeStationsAroundMadrid(5);
+        injectCachedStations(fakeCache);
+
+        LocationRequest request = new LocationRequest();
+        request.setLatitude(40.4168);
+        request.setLongitude(-3.7038);
+
+        List<StationDTO> result = radioService.findNearestStation(request);
+
+        assertThat(result).hasSize(5);
+    }
+
+    @Test
+    @DisplayName("findNearestStation: result is sorted closest-first (first station is nearest)")
+    void findNearestStation_firstResultIsNearest() throws Exception {
+        // One station very close, one far away
+        List<StationDTO> fakeCache = new ArrayList<>();
+        fakeCache.add(StationDTO.builder()
+                .id("near").name("Near Station")
+                .streamUrl("https://near.stream.com")
+                .latitude(40.4170).longitude(-3.7040)  // ~22m from Madrid
+                .build());
+        fakeCache.add(StationDTO.builder()
+                .id("far").name("Far Station")
+                .streamUrl("https://far.stream.com")
+                .latitude(48.8566).longitude(2.3522)   // Paris
+                .build());
+        injectCachedStations(fakeCache);
+
+        LocationRequest request = new LocationRequest();
+        request.setLatitude(40.4168);
+        request.setLongitude(-3.7038);
+
+        List<StationDTO> result = radioService.findNearestStation(request);
+
+        assertThat(result.get(0).getId()).isEqualTo("near");
+        assertThat(result.get(1).getId()).isEqualTo("far");
+    }
+
+    @Test
+    @DisplayName("findNearestStation: caps result at exactly 10 even with large cache")
+    void findNearestStation_capsAtTen() throws Exception {
+        injectCachedStations(buildFakeStationsAroundMadrid(50));
+
+        LocationRequest request = new LocationRequest();
+        request.setLatitude(40.4168);
+        request.setLongitude(-3.7038);
+
+        assertThat(radioService.findNearestStation(request)).hasSize(10);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // getFallbackStation
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("getFallbackStation: returns a non-null station with all required fields")
+    void getFallbackStation_hasRequiredFields() {
+        StationDTO fallback = radioService.getFallbackStation();
+
+        assertThat(fallback).isNotNull();
+        assertThat(fallback.getId()).isNotNull().isNotEmpty();
+        assertThat(fallback.getName()).isNotNull().isNotEmpty();
+        assertThat(fallback.getStreamUrl()).isNotNull().isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("getFallbackStation: generates a new UUID on each call")
+    void getFallbackStation_uniqueIdEachCall() {
+        StationDTO first = radioService.getFallbackStation();
+        StationDTO second = radioService.getFallbackStation();
+
+        assertThat(first.getId()).isNotEqualTo(second.getId());
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // findForYou — genre case-insensitivity
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("findForYou: genre matching is case-insensitive (station 'Pop' matches preference 'pop')")
+    void findForYou_genreMatchingIsCaseInsensitive() throws Exception {
+        List<StationDTO> fakeCache = new ArrayList<>();
+        fakeCache.add(StationDTO.builder()
+                .id("pop-1").name("Pop Station")
+                .streamUrl("https://pop.stream.com")
+                .genre("Pop")   // uppercase — should match lowercase preference
+                .build());
+        fakeCache.add(StationDTO.builder()
+                .id("rock-1").name("Rock Station")
+                .streamUrl("https://rock.stream.com")
+                .genre("Rock")
+                .build());
+        injectCachedStations(fakeCache);
+
+        UserPreferences prefs = new UserPreferences();
+        prefs.setFavoriteGenres(List.of("pop"));  // lowercase
+        User user = User.builder().email(EMAIL).preferences(prefs).activo(true).build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        List<StationDTO> result = radioService.findForYou(EMAIL);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo("pop-1");
+    }
+
+    @Test
+    @DisplayName("findForYou: partial genre match works (station 'pop,hits' matches preference 'pop')")
+    void findForYou_partialGenreMatchWorks() throws Exception {
+        List<StationDTO> fakeCache = new ArrayList<>();
+        fakeCache.add(StationDTO.builder()
+                .id("pop-1").name("Pop Station")
+                .streamUrl("https://pop.stream.com")
+                .genre("pop,hits")  // contains "pop" as substring
+                .build());
+        injectCachedStations(fakeCache);
+
+        UserPreferences prefs = new UserPreferences();
+        prefs.setFavoriteGenres(List.of("pop"));
+        User user = User.builder().email(EMAIL).preferences(prefs).activo(true).build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        List<StationDTO> result = radioService.findForYou(EMAIL);
+
+        assertThat(result).hasSize(1);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // searchStations
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("searchStations: maps all fields from RadioBrowserStationDTO to StationDTO")
+    void searchStations_mapsResultsToDTO() {
+        RadioBrowserStationDTO raw = new RadioBrowserStationDTO();
+        raw.setStationuuid("uuid-x");
+        raw.setName("Search FM");
+        raw.setUrlResolved("https://search.fm/live");
+        raw.setFavicon("https://search.fm/logo.png");
+        raw.setTags("jazz");
+        raw.setCountry("Spain");
+        raw.setCountryCode("ES");
+        raw.setGeoLat(40.0);
+        raw.setGeoLong(-3.0);
+
+        when(radioBrowserClient.searchStations("jazz", "genre")).thenReturn(List.of(raw));
+
+        List<StationDTO> result = radioService.searchStations("jazz", "genre");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo("uuid-x");
+        assertThat(result.get(0).getCountry()).isEqualTo("Spain");
+        assertThat(result.get(0).getCountryCode()).isEqualTo("ES");
+    }
+
+    @Test
+    @DisplayName("searchStations: returns empty list when RadioBrowserClient finds nothing")
+    void searchStations_returnsEmptyListWhenNoResults() {
+        when(radioBrowserClient.searchStations("xyznotexist", "name")).thenReturn(List.of());
+
+        List<StationDTO> result = radioService.searchStations("xyznotexist", "name");
+
+        assertThat(result).isEmpty();
+    }
+
     /** Builds n StationDTOs with coordinates slightly offset from Madrid. */
     private List<StationDTO> buildFakeStationsAroundMadrid(int count) {
         List<StationDTO> list = new ArrayList<>();

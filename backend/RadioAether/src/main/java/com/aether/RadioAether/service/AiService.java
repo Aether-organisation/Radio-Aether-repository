@@ -296,7 +296,7 @@ public class AiService {
      * Shown when the AI quota/region is not available.
      */
     private MoodPlaylist getFallbackPlaylist(String text) {
-        String lower = text.toLowerCase();
+        String lower = (text != null) ? text.toLowerCase() : "";
         List<String> tags = new ArrayList<>();
 
         if (lower.contains("estudiar") || lower.contains("concentra") || lower.contains("focus")) tags.add("lofi");
