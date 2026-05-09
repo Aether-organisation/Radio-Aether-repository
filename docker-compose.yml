@@ -76,7 +76,7 @@ services:
     depends_on:
       postgres-odoo:
         condition: service_healthy
-
+    command: -d ${ODOO_DB_NAME:-odoo} -i aether_featured --dev=all
 volumes:
   postgres_data:
   postgres_odoo_data:
