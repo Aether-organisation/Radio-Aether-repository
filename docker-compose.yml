@@ -73,6 +73,7 @@ services:
       - PASSWORD=${ODOO_DB_PASSWORD:-odoo}
     volumes:
       - ./odoo/addons:/mnt/extra-addons
+      - odoo_data:/var/lib/odoo
     depends_on:
       postgres-odoo:
         condition: service_healthy
@@ -80,3 +81,4 @@ services:
 volumes:
   postgres_data:
   postgres_odoo_data:
+  odoo_data:
