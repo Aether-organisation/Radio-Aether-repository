@@ -671,7 +671,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const [aiPlaylist, setAiPlaylist]     = useState<AiPlaylist | null>(null);
   const [aiError, setAiError]           = useState<string | null>(null);
 
-  const { createPlaylist, addStationToPlaylist } = usePlaylists();
+  const { createPlaylist, addStationToPlaylist, loadPlaylists } = usePlaylists();
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [saveModalName, setSaveModalName] = useState('');
   const [saveLoading, setSaveLoading] = useState(false);
@@ -681,13 +681,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     setSaveLoading(true);
     try {
       const newPlaylist = await createPlaylist(saveModalName.trim());
-      for (const st of aiPlaylist.stations) {
-        await addStationToPlaylist(newPlaylist.id, st);
-      }
+      const uniqueStations = Array.from(
+        new Map(aiPlaylist.stations.map(s => [s.id, s])).values()
+      );
+      const results = await Promise.allSettled(
+        uniqueStations.map(st => addStationToPlaylist(newPlaylist.id, st))
+      );
+      await loadPlaylists();
+      const added = results.filter(r => r.status === 'fulfilled').length;
       setSaveModalVisible(false);
-      Alert.alert('Éxito', 'Lista guardada en tu biblioteca.');
+      if (added === 0) {
+        Alert.alert('Error', 'No se pudo añadir ninguna emisora a la lista.');
+      } else if (added < uniqueStations.length) {
+        Alert.alert(
+          'Lista guardada',
+          `Se añadieron ${added} de ${uniqueStations.length} emisoras. Algunas no se pudieron añadir.`
+        );
+      } else {
+        Alert.alert('Éxito', `Lista guardada con ${added} emisora${added !== 1 ? 's' : ''}.`);
+      }
     } catch (e) {
-      Alert.alert('Error', 'No se pudo guardar la lista.');
+      Alert.alert('Error', 'No se pudo crear la lista.');
     } finally {
       setSaveLoading(false);
     }
