@@ -1,4 +1,4 @@
-import { useTheme } from '../contexts/ThemeContext';
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
@@ -400,8 +400,10 @@ const SURFACE     = '#16162A';
 const BORDER      = '#2D2D4A';
 const TEXT        = '#FFFFFF';
 const SUBTEXT     = '#9399B2';
+const CYAN        = '#00D1FF';
+const CYAN_GLOW   = 'rgba(0, 209, 255, 0.15)';
 
-const getStyles = (colors: any) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: BG,
@@ -439,7 +441,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   progressDotActive: {
     width: 28,
     borderRadius: 4,
-    backgroundColor: colors.cyan,
+    backgroundColor: CYAN,
   },
 
   // ── Welcome ─────────────────────────────────────────────────────────────
@@ -499,8 +501,8 @@ const getStyles = (colors: any) => StyleSheet.create({
     borderColor: BORDER,
   },
   genderCardActive: {
-    borderColor: colors.cyan,
-    backgroundColor: colors.cyanGlow,
+    borderColor: CYAN,
+    backgroundColor: CYAN_GLOW,
   },
   genderEmoji: {
     fontSize: 28,
@@ -532,7 +534,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.cyan,
+    backgroundColor: CYAN,
   },
   transitionSub: {
     fontSize: 15,
@@ -562,8 +564,8 @@ const getStyles = (colors: any) => StyleSheet.create({
     borderColor: BORDER,
   },
   genreChipActive: {
-    backgroundColor: colors.cyanGlow,
-    borderColor: colors.cyan,
+    backgroundColor: CYAN_GLOW,
+    borderColor: CYAN,
   },
   genreEmoji: {
     fontSize: 16,
@@ -579,7 +581,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   },
   selectedCount: {
     textAlign: 'center',
-    color: colors.cyan,
+    color: CYAN,
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 14,
@@ -587,7 +589,7 @@ const getStyles = (colors: any) => StyleSheet.create({
 
   // ── Buttons ──────────────────────────────────────────────────────────────
   primaryBtn: {
-    backgroundColor: colors.cyan,
+    backgroundColor: CYAN,
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
@@ -616,11 +618,11 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: colors.cyan,
+    backgroundColor: CYAN,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 28,
-    shadowColor: colors.cyan,
+    shadowColor: CYAN,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.55,
     shadowRadius: 20,

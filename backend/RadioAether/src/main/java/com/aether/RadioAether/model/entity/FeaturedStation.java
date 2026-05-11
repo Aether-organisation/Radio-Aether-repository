@@ -68,4 +68,8 @@ public class FeaturedStation {
     @Column(name = "is_active")
     @JsonProperty("isActive")
     private boolean isActive;
+
+    @Column(name = "is_rejected", columnDefinition = "boolean default false")
+    @JsonProperty("isRejected")
+    private Boolean isRejected = false;
 }

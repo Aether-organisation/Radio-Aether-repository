@@ -623,16 +623,14 @@ const SkeletonCard: React.FC<{ pulse: Animated.Value }> = ({ pulse }) => {
 // ─── SectionHeader ───────────────────────────────────────────────────────────
 
 const SectionHeader: React.FC<{
-  icon: string;
   title: string;
   onRefresh?: () => void;
   isLoading?: boolean;
-}> = ({ icon, title, onRefresh, isLoading }) => {
+}> = ({ title, onRefresh, isLoading }) => {
   const { colors } = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 14 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Text style={{ fontSize: 18 }}>{icon}</Text>
         <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary }}>{title}</Text>
       </View>
       {onRefresh && (
@@ -1054,7 +1052,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
         {/* Emisoras Destacadas — only shown when there is data */}
         {(featuredLoading || featuredStations.length > 0) && (
           <Animated.View style={[styles.section, { transform: [{ translateY: sec0Slide }] }]}>
-            <SectionHeader icon="⭐" title="Seleccionadas" />
+            <SectionHeader title="Seleccionadas" />
             {featuredLoading ? renderSkeletons() : (
               <FlatList
                 data={featuredStations}
@@ -1072,7 +1070,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
         {/* Emisoras Cercanas */}
         <Animated.View style={[styles.section, { transform: [{ translateY: sec1Slide }] }]}>
           <SectionHeader
-            icon="📍"
             title="Cerca de ti"
             onRefresh={fetchNearest}
             isLoading={nearestLoading}
@@ -1108,7 +1105,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
         {/* Recomendadas para ti */}
         <Animated.View style={[styles.section, { transform: [{ translateY: sec2Slide }] }]}>
-          <SectionHeader icon="✨" title="Hecho a tu medida" />
+          <SectionHeader title="Hecho a tu medida" />
 
           {recommendedLoading ? renderSkeletons()
             : recommendedStations.length === 0 ? (

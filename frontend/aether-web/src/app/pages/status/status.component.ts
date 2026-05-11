@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 interface FeaturedStation {
   id: string;
-  stationName: string;
+  name: string;
   genre: string;
   logoUrl: string;
   streamUrl: string;
@@ -12,6 +12,7 @@ interface FeaturedStation {
   featuredUntil: string;
   isActive: boolean;
   odooRequestId: string;
+  isRejected: boolean;
 }
 
 @Component({
@@ -75,11 +76,20 @@ interface FeaturedStation {
         }
 
         @if (station()) {
-          <div class="result-card" [class.approved]="station()!.isActive" [class.pending]="!station()!.isActive">
-            <div class="result-badge" [class.badge-approved]="station()!.isActive" [class.badge-pending]="!station()!.isActive">
-              @if (station()!.isActive) {
+          <div class="result-card" 
+               [class.approved]="station()!.isActive && !station()!.isRejected" 
+               [class.pending]="!station()!.isActive && !station()!.isRejected"
+               [class.rejected]="station()!.isRejected">
+            <div class="result-badge" 
+                 [class.badge-approved]="station()!.isActive && !station()!.isRejected" 
+                 [class.badge-pending]="!station()!.isActive && !station()!.isRejected"
+                 [class.badge-rejected]="station()!.isRejected">
+              @if (station()!.isActive && !station()!.isRejected) {
                 <span class="badge-dot"></span>
                 APROBADA
+              } @else if (station()!.isRejected) {
+                <span class="badge-dot"></span>
+                RECHAZADA
               } @else {
                 <span class="badge-dot"></span>
                 PENDIENTE DE APROBACIÓN
@@ -88,17 +98,17 @@ interface FeaturedStation {
 
             <div class="station-detail">
               @if (station()!.logoUrl) {
-                <img [src]="station()!.logoUrl" [alt]="station()!.stationName" class="station-logo" (error)="onImgError($event)">
+                <img [src]="station()!.logoUrl" [alt]="station()!.name" class="station-logo" (error)="onImgError($event)">
               } @else {
-                <div class="station-logo-fallback">{{ station()!.stationName[0]?.toUpperCase() }}</div>
+                <div class="station-logo-fallback">{{ station()!.name[0]?.toUpperCase() }}</div>
               }
               <div class="station-meta">
-                <h2>{{ station()!.stationName }}</h2>
+                <h2>{{ station()!.name }}</h2>
                 <span class="station-genre">{{ station()!.genre }}</span>
               </div>
             </div>
 
-            @if (station()!.isActive) {
+            @if (station()!.isActive && !station()!.isRejected) {
               <div class="dates-grid">
                 <div class="date-item">
                   <span class="date-label">ACTIVA DESDE</span>
@@ -113,6 +123,10 @@ interface FeaturedStation {
                 <span class="url-label">STREAM URL</span>
                 <code class="url-value">{{ station()!.streamUrl }}</code>
               </div>
+            } @else if (station()!.isRejected) {
+              <p class="pending-msg" style="color: var(--danger); background: rgba(239,68,68,0.05); border-color: rgba(239,68,68,0.2);">
+                Tu solicitud ha sido rechazada. Revisa que tu emisora cumpla nuestras políticas e inténtalo más adelante.
+              </p>
             } @else {
               <p class="pending-msg">
                 Tu solicitud está siendo revisada por nuestro equipo.
@@ -342,6 +356,7 @@ interface FeaturedStation {
     }
     .result-card.approved { border-color: rgba(16,185,129,0.4); }
     .result-card.pending  { border-color: rgba(251,191,36,0.35); }
+    .result-card.rejected { border-color: rgba(239,68,68,0.4); }
 
     .result-card.error-card {
       flex-direction: row;
@@ -403,6 +418,15 @@ interface FeaturedStation {
       background: var(--warning);
       box-shadow: 0 0 8px rgba(251,191,36,0.8);
       animation: pulseGlow 2s ease-in-out infinite;
+    }
+    .badge-rejected {
+      background: rgba(239,68,68,0.08);
+      color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    .badge-rejected .badge-dot {
+      background: var(--danger);
+      box-shadow: 0 0 8px rgba(239,68,68,0.8);
     }
 
     /* ── Station detail ── */
@@ -501,7 +525,7 @@ export class StatusComponent {
   station = signal<FeaturedStation | null>(null);
   error = signal('');
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   checkStatus(): void {
     if (!this.requestId.trim()) { return; }

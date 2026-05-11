@@ -145,10 +145,11 @@ public class FeaturedStationService {
         log.info("[Aether] Recibido webhook de Odoo. ID: {}, Aprobado: {}",
                 webhookDto.getOdooRequestId(), webhookDto.isApproved());
 
+        final FeaturedStation station = featuredStationRepository
+                .findByOdooRequestId(webhookDto.getOdooRequestId())
+                .orElseThrow(() -> new RuntimeException("Station not found: " + webhookDto.getOdooRequestId()));
+
         if (webhookDto.isApproved()) {
-            final FeaturedStation station = featuredStationRepository
-                    .findByOdooRequestId(webhookDto.getOdooRequestId())
-                    .orElseThrow(() -> new RuntimeException("Station not found: " + webhookDto.getOdooRequestId()));
 
             final long activeCount = featuredStationRepository.countByIsActiveTrue();
             log.info("[Aether] Radios activas actuales: {}", activeCount);
@@ -159,14 +160,18 @@ public class FeaturedStationService {
             }
 
             station.setActive(true);
+            station.setIsRejected(false);
             station.setFeaturedFrom(LocalDateTime.now());
             station.setFeaturedUntil(LocalDateTime.now().plusDays(7));
 
             featuredStationRepository.save(station);
             featuredStationRepository.flush();
-            log.info("[Aether] ¡Radio ACTIVADA exitosamente!: {}", station.getStationName());
         } else {
             log.info("[Aether] La solicitud ha sido rechazada en Odoo.");
+            station.setActive(false);
+            station.setIsRejected(true);
+            featuredStationRepository.save(station);
+            featuredStationRepository.flush();
         }
     }
 
