@@ -694,7 +694,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   };
 
   // ── Animations ──────────────────────────────────────────────────────────────
-  const masterFade  = useRef(new Animated.Value(0)).current;
   const headerSlide = useRef(new Animated.Value(-16)).current;
   const sec0Slide   = useRef(new Animated.Value(36)).current;
   const sec1Slide   = useRef(new Animated.Value(36)).current;
@@ -716,7 +715,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(masterFade, { toValue: 1, duration: 550, easing: Easing.out(Easing.quad), useNativeDriver: true }),
       Animated.spring(headerSlide, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
       Animated.sequence([Animated.delay(65),  Animated.spring(sec0Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
       Animated.sequence([Animated.delay(195), Animated.spring(sec1Slide, { toValue: 0, tension: 55, friction: 10, useNativeDriver: true })]),
@@ -915,7 +913,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     >
       <OfflineBanner isOnline={isOnline} />
       <Animated.ScrollView
-        style={[styles.container, { opacity: masterFade }]}
+        style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >

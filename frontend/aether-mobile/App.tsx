@@ -92,7 +92,7 @@ function RootApp() {
                 <Stack.Screen name="Survey" component={SurveyScreen} />
                 <Stack.Screen name="Player" component={PlayerScreen} />
                 <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
-                <Stack.Screen name="MainTabs" component={MainTabs} />
+                <Stack.Screen name="MainTabs" component={MainTabs} options={{ animation: 'fade' }} />
               </Stack.Navigator>
             </NavigationContainer>
           </View>
