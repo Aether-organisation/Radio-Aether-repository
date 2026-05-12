@@ -1,0 +1,54 @@
+# Java / Maven build output
+/target/
+*.class
+
+# IDE config (do not commit)
+.mvn/
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+*.launch
+*.code-workspace
+
+# IDE build output
+/bin/
+/out/
+
+# NetBeans
+/nbproject/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# OS files (Mac/Windows)
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+/logs/
+
+# SQLite databases (each dev keeps their own local DB)
+*.db
+*.sqlite
+*.sqlite3
+
+# Temp files
+/tmp/
+/.tmp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# Env / secrets
+.env
+.env.*
+*.key
+*.pem

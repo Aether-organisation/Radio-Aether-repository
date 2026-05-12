@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_aether_featured_request_tree" model="ir.ui.view">
+        <field name="name">aether.featured.request.tree</field>
+        <field name="model">aether.featured.request</field>
+        <field name="arch" type="xml">
+            <tree string="Featured Requests">
+                <field name="station_name"/>
+                <field name="genre"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_aether_featured_request_form" model="ir.ui.view">
+        <field name="name">aether.featured.request.form</field>
+        <field name="model">aether.featured.request</field>
+        <field name="arch" type="xml">
+            <form string="Featured Request">
+                <header>
+                    <button name="action_approve" type="object" string="Approve" invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_reject" type="object" string="Reject" invisible="state != 'draft'"/>
+                    <button name="action_reset_draft" type="object" string="Reset to Draft" invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,rejected"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="station_name"/>
+                            <field name="stream_url"/>
+                            <field name="logo_url"/>
+                        </group>
+                        <group>
+                            <field name="genre"/>
+                            <field name="duration_days"/>
+                            <field name="odoo_request_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_aether_featured_request" model="ir.actions.act_window">
+        <field name="name">Featured Requests</field>
+        <field name="res_model">aether.featured.request</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_aether_featured_root" name="Radio Aether B2B" sequence="10"/>
+    <menuitem id="menu_aether_featured_request" name="Requests" parent="menu_aether_featured_root" action="action_aether_featured_request" sequence="10"/>
+</odoo>

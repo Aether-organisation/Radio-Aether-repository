@@ -1,0 +1,84 @@
+services:
+
+  postgres:
+    image: public.ecr.aws/docker/library/postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend/RadioAether
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      SPRING_DATASOURCE_URL:      ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      APP_JWT_SECRET:             ${APP_JWT_SECRET}
+      GEMINI_API_KEY:             ${GEMINI_API_KEY}
+      OPENWEATHER_API_KEY:        ${OPENWEATHER_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+      - "443:443"
+    depends_on:
+      - backend
+
+  postgres-odoo:
+    image: public.ecr.aws/docker/library/postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${ODOO_DB_NAME:-odoo}
+      POSTGRES_USER:     ${ODOO_DB_USER:-odoo}
+      POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+    volumes:
+      - postgres_odoo_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ODOO_DB_USER:-odoo} -d ${ODOO_DB_NAME:-odoo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  odoo:
+    image: odoo:17
+    restart: unless-stopped
+    ports:
+      - "8069:8069"
+    environment:
+      - HOST=postgres-odoo
+      - USER=${ODOO_DB_USER:-odoo}
+      - PASSWORD=${ODOO_DB_PASSWORD:-odoo}
+    volumes:
+      - ./odoo/addons:/mnt/extra-addons
+      - odoo_data:/var/lib/odoo
+    depends_on:
+      postgres-odoo:
+        condition: service_healthy
+    command: -d ${ODOO_DB_NAME:-odoo} -i aether_featured --dev=all
+volumes:
+  postgres_data:
+  postgres_odoo_data:
+  odoo_data:

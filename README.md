@@ -1,92 +1,184 @@
-# Radio Aether 
+# Radio Aether V5
 
-![Project Status](https://img.shields.io/badge/Status-In_Development-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-v4.0.0--ORBIT-646cff?style=for-the-badge)
+![Project Status](https://img.shields.io/badge/Status-En%20Desarrollo-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Academic-lightgrey?style=for-the-badge)
-![Tech Stack](https://img.shields.io/badge/Stack-Java_Spring_React-orange?style=for-the-badge)
+![Tech Stack](https://img.shields.io/badge/Stack-Java_Spring_Angular_React_Native-orange?style=for-the-badge)
 
-> **Sintoniza con tu entorno.**
-> *La evolución de la radio FM a través de Inteligencia Artificial y Contexto.*
-
----
-
-## 🌌 Sobre el Proyecto
-
-**Radio Aether** es un proyecto de fin de grado (TFG) para el ciclo de **Desarrollo de Aplicaciones Multiplataforma (DAM)**. 
-
-No buscamos crear otro reproductor de música. Aether nace con la premisa de que la radio tradicional es unidireccional y ciega. Nuestra propuesta es una **Plataforma de Streaming Contextual** que entiende no solo *qué* quieres escuchar, sino *dónde* estás, *qué* estás haciendo y *cómo* te sientes.
-
-El sistema utiliza **Geolocalización**, **Big Data** y algoritmos de **Inteligencia Artificial** para curar contenido en tiempo real, ofreciendo una experiencia segura para conductores y personalizada para cada usuario.
+> Proyecto Académico · IES Puerto de la Cruz · 2º DAM
 
 ---
 
-## 🚀 Funcionalidades Clave (Roadmap)
+## 📖 ¿Qué es Radio Aether?
 
-El proyecto se sustenta en cuatro pilares fundamentales que buscan la complejidad técnica y la utilidad real:
-
-### 🧠 1. Mood Tuner (IA)
-Olvídate de buscar géneros. Radio Aether integra un motor de procesamiento de lenguaje natural.
-* *Input:* "Me acaban de dar plantón" o "Voy tarde al trabajo".
-* *Output:* El sistema analiza el sentimiento y selecciona una emisora acorde al estado de ánimo.
-
-### 📍 2. Geo-Sintonización Inteligente
-Uso intensivo de servicios de ubicación para:
-* Recomendar emisoras locales basándose en coordenadas GPS.
-* Generar mapas de calor de tendencias musicales por zona.
-* Adaptar el contenido según el clima local (integración con APIs meteorológicas).
-
-### 🚗 3. Driver Mode (Seguridad)
-Un módulo específico para la conducción que prioriza la **Usabilidad** y la seguridad vial:
-* Interfaz de alto contraste y botones ampliados.
-* Lectura de notificaciones de tráfico y alertas meteorológicas (TTS).
-* Interacción por voz para minimizar distracciones.
-
-### 🌱 4. Sostenibilidad (Eco-Core)
-Diseño orientado a la eficiencia energética:
-* Interfaz "True Black" optimizada para pantallas OLED.
-* Gestión eficiente de datos y buffering para reducir el consumo de batería y ancho de banda.
+Radio Aether es una plataforma de streaming de radio en línea compuesta por una **aplicación móvil** (Android/iOS), un **backend REST** y, a partir de esta versión, una **web pública** y un sistema de gestión empresarial con **Odoo**. Permite descubrir emisoras de todo el mundo, recibir recomendaciones personalizadas por géneros y ubicación, y guardar favoritos.
 
 ---
 
-## 🛠️ Stack Tecnológico (Preliminar)
+## 🏗️ Arquitectura del Sistema (v4 - ORBIT)
 
-Para afrontar la complejidad del sistema, hemos seleccionado una arquitectura robusta y escalable:
+```
+Cliente móvil (Expo)          Cliente web (Angular)
+        │                             │
+        └──────────┬──────────────────┘
+                   │ HTTPS
+                   ▼
+             [ Nginx + SSL ]          ← Reverse proxy / SSL termination
+                   │
+        ┌──────────┼──────────────┐
+        ▼          ▼              ▼
+   [ Backend ]  [ Angular ]   [ Odoo ]
+   Spring Boot   (estático)   ERP :8069
+     :8080                        │
+        │                         │ webhook
+        └──────────────────────────┘
+                   │
+             [ SQLite DB ]
+```
 
-### Backend (El Cerebro)
-* **Lenguaje:** Java ☕
-* **Framework:** Spring Boot (Microservicios/API REST).
-* **Base de Datos:** Estructura híbrida para gestionar usuarios, preferencias y logs masivos de historial.
-
-### Frontend / Cliente (La Cara)
-* **Lenguaje:** TypeScript 🟦
-* **Framework:** React (Web/Mobile responsive).
-* **UX/UI:** Diseño moderno, minimalista y accesible.
-
-### Capacidades Transversales
-* **Despliegue:** Contenedores (Docker).
-* **Seguridad:** Autenticación robusta y cifrado de datos. (JWT)
+Todo el sistema (excepto el cliente móvil) corre dentro de **Docker Compose**, con Nginx como único punto de entrada en HTTPS.
 
 ---
 
-## 🎓 Contexto Académico
+## ✅ Funcionalidades implementadas
 
-Este proyecto integra competencias de todas las asignaturas de 2º de DAM:
+### 🔐 Seguridad y Autenticación
 
-* **DAD:** Diseño de interfaces avanzadas y experiencia de usuario.
-* **PGL:** Lógica de movilidad, sensores y multimedia.
-* **AED:** Persistencia de datos compleja y optimizada.
-* **PGV:** Programación multihilo y servicios en red.
-* **SOJ:** Enfoque en sostenibilidad y optimización de recursos.
-* **SSG:** Gestión empresarial y viabilidad del producto.
+- JWT stateless con Spring Security
+- BCrypt para hashing de contraseñas
+- RBAC: roles `USER`, `ADMIN`, `B2B`
+- Tokens almacenados en Secure Storage del dispositivo (Keychain/Keystore)
+
+### 📱 Aplicación Móvil (React Native + Expo)
+
+- Registro e inicio de sesión
+- Encuesta inicial de géneros musicales (redirige automáticamente si no está completada)
+- **Home:** emisoras cercanas por geolocalización + recomendaciones personalizadas por géneros
+- **Búsqueda:** por nombre, país o género (Radio Browser API)
+- **Biblioteca:** lista de emisoras favoritas
+- **Perfil:** foto, nombre, cambio de contraseña
+- MiniPlayer persistente + PlayerScreen en pantalla completa
+- Streaming de audio con `expo-av`
+
+### 🌍 Integración con Radio Browser API
+
+- +30.000 emisoras de todo el mundo
+- Geolocalización con fórmula de Haversine para encontrar las más cercanas
+- Caché en memoria al arrancar el servidor para minimizar llamadas externas
+
+### 📴 Modo Offline *(nuevo en v4)*
+
+- Base de datos local en el dispositivo con `expo-sqlite`
+- Favoritos y últimas emisoras vistas disponibles sin conexión
+- La app detecta si hay red y cambia entre datos locales y remotos automáticamente
+
+### ⭐ Emisoras Destacadas *(nuevo en v4)*
+
+- Las emisoras pueden solicitar aparecer en la sección "Destacadas" de la app
+- Gestión de solicitudes a través del módulo Odoo personalizado
+- Aprobación manual por el administrador en el panel de Odoo
+- Webhook Odoo → Spring Boot para activar el destacado automáticamente
+- Las emisoras destacadas expiran tras un tiempo predefinido (`@Scheduled`)
+
+### 🌐 Web Pública Angular *(nuevo en v4)*
+
+- Landing page de la plataforma
+- Formulario de solicitud para que emisoras pidan ser destacadas
+- Servida como contenido estático por Nginx
+
+### 🐳 Infraestructura Docker *(nuevo en v4)*
+
+- Todo el backend, web y Odoo corren en contenedores con un único `docker-compose up`
+- Nginx como reverse proxy con SSL (HTTPS)
+- Certificados SSL gestionados con `mkcert`
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Capa                            | Tecnología                 | Descripción                                             |
+| ------------------------------- | --------------------------- | -------------------------------------------------------- |
+| **Backend**               | Java 17 + Spring Boot 4     | API REST, seguridad y lógica de negocio                 |
+| **Frontend móvil**       | React Native 0.81 + Expo 54 | App híbrida Android/iOS                                 |
+| **Frontend web**          | Angular                     | Landing page y formulario de solicitud                   |
+| **Base de datos backend** | PostgreSQL                  | Persistencia del servidor en Docker                      |
+| **Base de datos móvil**  | SQLite (`expo-sqlite`)    | Almacenamiento local en el dispositivo para modo offline |
+| **ERP**                   | Odoo                        | Gestión de solicitudes de emisoras destacadas           |
+| **Proxy / SSL**           | Nginx                       | Reverse proxy, SSL termination, servido de estáticos    |
+| **Contenedores**          | Docker + Docker Compose     | Orquestación de todos los servicios                     |
+| **Seguridad**             | Spring Security + JWT       | Protección de endpoints y cifrado                       |
+| **API externa**           | Radio Browser API           | Catálogo global de emisoras                             |
+
+---
+
+## ⚙️ Instrucciones de Ejecución
+
+### Con Docker (backend + web + Odoo)
+
+Necesitas **Docker** y **Docker Compose** instalados.
+
+```bash
+docker-compose up --build
+```
+
+Los servicios estarán disponibles en:
+
+- `https://localhost` → Web Angular
+- `https://localhost/api` → Backend Spring Boot
+- `https://localhost:8069` → Panel de Odoo
+
+### App Móvil (Expo)
+
+El frontend móvil se levanta de forma independiente. Necesitas **Node.js** y la app **Expo Go** en tu móvil.
+
+```bash
+cd frontend/aether-mobile
+npm install
+npx expo start
+```
+
+Escanea el código QR con tu móvil. Asegúrate de que el móvil y el PC están en la **misma red WiFi**.
+
+> **Nota:** Si usas un móvil físico, edita `src/api/axios.ts` y cambia `localhost` por la IP local de tu PC (ej: `192.168.1.X`).
+
+---
+
+## 📁 Estructura del Repositorio
+
+```
+Radio-Aether-repository/
+├── backend/
+│   └── RadioAether/          # Spring Boot
+├── frontend/
+│   └── aether-mobile/        # React Native + Expo
+├── web/                      # Angular (v4)
+├── odoo/                     # Módulo Odoo personalizado (v4)
+├── nginx/                    # Configuración Nginx + SSL (v4)
+├── docker-compose.yml        # Orquestación (v4)
+├── PLANNING_V4.md            # Documento de planificación v4
+└── README.md
+```
+
+---
+
+## 🗺️ Historial de versiones
+
+| Versión     | Nombre          | Descripción                                                                |
+| ------------ | --------------- | --------------------------------------------------------------------------- |
+| v1           | Genesis         | Auth JWT, RBAC, cliente móvil base, SQLite                                 |
+| v2           | —              | Mejoras de base de datos y persistencia                                     |
+| v3           | —              | Geolocalización, Radio Browser API, favoritos, búsqueda, encuesta, perfil |
+| **v4** | **ORBIT** | **Web Angular, Odoo, Destacados, Docker, Nginx + SSL**                |
 
 ---
 
 ## 👥 Autores
 
-Este proyecto está siendo desarrollado con ❤️ y ☕ por:
+Desarrollado con ❤️ y ☕ por:
 
-* **Romén Gilberto García Gómez** - [@PRORIX](https://github.com/PRORIX)
-* **Marcos Hernández Oramas** - [@mahoramas](https://github.com/mahoramas)
+- **Romén Gilberto García Gómez** — [@PRORIX](https://github.com/PRORIX)
+- **Marcos Hernández Oramas** — [@mahoramas](https://github.com/mahoramas)
 
 ---
 
-> *Este proyecto se encuentra actualmente en fase de **Planificación y Prototipado**. Vuelve pronto para ver el código en acción.*
+> *Proyecto Académico · IES Puerto de la Cruz · 2º DAM*
